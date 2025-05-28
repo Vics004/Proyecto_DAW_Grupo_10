@@ -1,0 +1,36 @@
+﻿@{
+    Layout = "_miLayout";
+    ViewData["Title"] = "Login";
+}
+
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="text-center">
+        <h1 style="color: #001f3f; font-weight: bold; font-size: 3rem;">Gestor de Tickets</h1>
+        <h3 style="color: #003366;">Login</h3>
+
+        <div class="w-100" style="max-width: 400px;">
+            <div class="p-4 border rounded" style="border-color: #b3cde0; background-color: #f8f9fa;">
+                <form method="post" class="mt-2">
+                    <div class="form-group">
+                        <label for="txtUsuario" class="d-block fw-bold text-start" style="color: #004080;">Nombre</label>
+                        @Html.TextBox("txtUsuario", "", new { @class = "form-control", style = "border-color: #a7c7e7;" })
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="txtClave" class="d-block fw-bold text-start" style="color: #004080;">Contraseña</label>
+                        @Html.Password("txtClave", "", new { @class = "form-control", style = "border-color: #a7c7e7;" })
+                    </div>
+                    <button type="submit" class="btn btn-lg mt-3" style="background-color: #00509e; color: white; width: 100%; border: none;">
+                        Iniciar sesión
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(ViewData["ErrorMessage"]?.ToString()))
+        {
+            <div class="alert alert-danger mt-3" style="background-color: #f8d7da; border-color: #f5c6cb; color: #721c24;">
+                @ViewData["ErrorMessage"]
+            </div>
+        }
+    </div>
+</div>
