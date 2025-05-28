@@ -16,23 +16,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             _logger = logger;
         }
 
-        /*
-        [Autenticacion]
-        public IActionResult Index()
-        {
-
-            var usuarioId = HttpContext.Session.GetInt32("usuarioId");
-            var tipoUsuario = HttpContext.Session.GetString("TipoUsuario");
-            var nombreUsuario = HttpContext.Session.GetString("Nombre");
-            if (usuarioId == null)
-            {
-                return RedirectToAction("Autenticar", "login");
-            }
-            ViewBag.nombre = nombreUsuario;
-            ViewData["tipoUsuario"] = tipoUsuario;
-            return View();
-        }
-        */
         [Autenticacion]
         public IActionResult Index()
         {

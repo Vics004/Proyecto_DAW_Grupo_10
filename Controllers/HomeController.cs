@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Proyecto_DAW_Grupo_10.Models;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using static Proyecto_DAW_Grupo_10.Servicios.AutenticationAttribute;
 
 namespace Proyecto_DAW_Grupo_10.Controllers
 {
@@ -8,16 +10,17 @@ namespace Proyecto_DAW_Grupo_10.Controllers
     {
         private readonly ILogger<HomeController> _logger;
 
+
         public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
         }
-
+        [Autenticacion]
         public IActionResult Index()
         {
             return View();
         }
-
+        [Autenticacion]
         public IActionResult Privacy()
         {
             return View();
