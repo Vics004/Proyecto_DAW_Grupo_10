@@ -33,7 +33,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             // Obtener información actualizada del usuario con join explícito
             var usuarioInfo = (from u in _TicketsDbContexto.usuario
                                join r in _TicketsDbContexto.rol on u.rolId equals r.rolId
-                               where u.usuarioid == usuarioId
+                               where u.usuarioId == usuarioId
                                select new
                                {
                                    RolNombre = r.nombre,
@@ -86,7 +86,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
 
             if (usuario != null)
             {
-                HttpContext.Session.SetInt32("usuarioId", usuario.Usuario.usuarioid);
+                HttpContext.Session.SetInt32("usuarioId", usuario.Usuario.usuarioId);
                 HttpContext.Session.SetString("TipoUsuario", usuario.RolNombre);
                 HttpContext.Session.SetString("Nombre", usuario.Usuario.nombre);
                 HttpContext.Session.SetInt32("RolId", usuario.RolId);

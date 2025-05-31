@@ -8,7 +8,7 @@ namespace Proyecto_DAW_Grupo_10.Models
     public class usuario
     {
         [Key]
-        public int usuarioid { get; set; }
+        public int usuarioId { get; set; }
         public string? nombre { get; set; }
         public string? correo { get; set; }
         public string? telefono { get; set; }
