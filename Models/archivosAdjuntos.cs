@@ -1,6 +1,6 @@
 ﻿namespace Proyecto_DAW_Grupo_10.Models
 {
-    public class archivosAdjuntosTarea
+    public class archivosAdjuntos
     {
         public int archivoId { get; set; }
         public int? tareaId { get; set; }
