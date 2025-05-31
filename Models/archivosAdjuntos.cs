@@ -1,7 +1,10 @@
-﻿namespace Proyecto_DAW_Grupo_10.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Proyecto_DAW_Grupo_10.Models
 {
     public class archivosAdjuntos
     {
+        [Key]
         public int archivoId { get; set; }
         public int? tareaId { get; set; }
         public int usuarioId { get; set; }
