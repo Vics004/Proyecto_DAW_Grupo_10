@@ -21,8 +21,8 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         {
             // Obtener datos de sesión
             var usuarioId = HttpContext.Session.GetInt32("usuarioId");
-            var rolId = HttpContext.Session.GetInt32("RolId");
-            var nombreUsuario = HttpContext.Session.GetString("Nombre");
+            var rolId = HttpContext.Session.GetInt32("rolId");
+            var nombreUsuario = HttpContext.Session.GetString("nombre");
 
             // Si no está autenticado, redirigir a login
             if (usuarioId == null)
@@ -36,12 +36,12 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                where u.usuarioId == usuarioId
                                select new
                                {
-                                   RolNombre = r.nombre,
-                                   RolId = r.rolId
+                                   rolNombre = r.nombre,
+                                   rolId = r.rolId
                                }).FirstOrDefault();
 
             // Establecer ViewBag con el layout correspondiente
-            switch (usuarioInfo?.RolId ?? rolId)
+            switch (usuarioInfo?.rolId ?? rolId)
             {
                 case 1:
                     ViewBag.Layout = "_Layout_Cliente";
@@ -79,19 +79,19 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                  && u.activo == true
                                  select new
                                  {
-                                     Usuario = u,
-                                     RolNombre = r.nombre,
-                                     RolId = r.rolId
+                                     usuario = u,
+                                     rolNombre = r.nombre,
+                                     rolId = r.rolId
                                  }).FirstOrDefaultAsync();
 
             if (usuario != null)
             {
-                HttpContext.Session.SetInt32("usuarioId", usuario.Usuario.usuarioId);
-                HttpContext.Session.SetString("TipoUsuario", usuario.RolNombre);
-                HttpContext.Session.SetString("Nombre", usuario.Usuario.nombre);
-                HttpContext.Session.SetInt32("RolId", usuario.RolId);
+                HttpContext.Session.SetInt32("usuarioId", usuario.usuario.usuarioId);
+                HttpContext.Session.SetString("TipoUsuario", usuario.rolNombre);
+                HttpContext.Session.SetString("Nombre", usuario.usuario.nombre);
+                HttpContext.Session.SetInt32("RolId", usuario.rolId);
 
-                switch (usuario.RolId)
+                switch (usuario.rolId)
                 {
                     case 1:
                         return RedirectToAction("Index", "login");
