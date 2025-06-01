@@ -1,0 +1,35 @@
+﻿@{
+    Layout = "_Layout_Cliente";
+    ViewData["Title"] = "Cambiar Contraseña";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4" style="color: #001f3f; font-weight: bold;">Cambiar Contraseña</h1>
+
+    <form asp-action="CambiarContrasenia" method="post" class="border p-4 rounded" style="background-color: #f8f9fa; border-color: #b3cde0 !important;">
+        <div class="mb-3">
+            <label class="form-label fw-bold" style="color: #004080;">Contraseña Actual</label>
+            <input type="password" name="contraseniaActual" class="form-control" style="border-color: #a7c7e7;" required />
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold" style="color: #004080;">Nueva Contraseña</label>
+            <input type="password" name="nuevaContrasenia" class="form-control" style="border-color: #a7c7e7;" required />
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold" style="color: #004080;">Confirmar Nueva Contraseña</label>
+            <input type="password" name="confirmarContrasenia" class="form-control" style="border-color: #a7c7e7;" required />
+        </div>
+
+        @if (ViewData.ModelState[""]?.Errors.Count > 0)
+        {
+            <div class="alert alert-danger">
+                @ViewData.ModelState[""].Errors.First().ErrorMessage
+            </div>
+        }
+
+        <div class="text-end mt-4">
+            <a href="@Url.Action("MiPerfil")" class="btn btn-secondary me-2">Cancelar</a>
+            <button type="submit" class="btn" style="background-color: #00509e; color: white;">Cambiar Contraseña</button>
+        </div>
+    </form>
+</div>

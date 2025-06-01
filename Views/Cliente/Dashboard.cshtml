@@ -1,0 +1,108 @@
+﻿@{
+    Layout = "_Layout_Cliente";
+    ViewData["Title"] = "Dashboard del Cliente";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4" style="color: #001f3f; font-weight: bold;">Dashboard</h1>
+    <h4 class="mb-4" style="color: #003366;">Resumen de tus tickets</h4>
+
+    <!-- Estadísticas -->
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Tickets Abiertos</h5>
+                    <h2 class="card-text">@ViewBag.TicketsAbiertos</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body text-center">
+                    <h5 class="card-title">En Espera de una respuesta</h5>
+                    <h2 class="card-text">@ViewBag.TicketsEnEspera</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Finalizados</h5>
+                    <h2 class="card-text">@ViewBag.TicketsFinalizados</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón para crear nuevo ticket -->
+    <div class="text-md-start mb-4">
+        <a href="@Url.Action("CrearTicket")" class="btn btn-lg" style="background-color: #00509e; color: white;">
+            <i class="fas fa-plus-circle"></i> Crear un nuevo ticket
+        </a>
+    </div>
+
+    <!-- Tickets recientes -->
+    <div class="card">
+        <div class="card-header" style="background-color: #003366; color: white;">
+            <h5 class="mb-0">Tickets recientes (últimos 5 días)</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Problema</th>
+                            <th>Prioridad</th>
+                            <th>Fecha Apertura</th>
+                            <th>Estado</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.TicketsRecientes != null && ViewBag.TicketsRecientes.Count > 0)
+                        {
+                            foreach (var ticket in ViewBag.TicketsRecientes)
+                            {
+                                <tr>
+                                    <td>@ticket.ticketId</td>
+                                    <td>@ticket.Problema</td>
+                                    <td>
+                                        <span class="badge @(ticket.Prioridad == "Urgente" ? "bg-danger" :
+                                                          ticket.Prioridad == "Alta" ? "bg-warning text-dark" :
+                                                          ticket.Prioridad == "Media" ? "bg-info" : "bg-secondary")">
+                                            @ticket.Prioridad
+                                        </span>
+                                    </td>
+                                    <td>@ticket.fechaApertura.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        <span class="badge @(ticket.Estado == "Finalizado" ? "bg-success" :
+                                                          ticket.Estado == "En proceso" ? "bg-primary" :
+                                                          ticket.Estado == "Cancelado" ? "bg-danger" : "bg-secondary")">
+                                            @ticket.Estado
+                                        </span>
+                                    </td>
+                                    <td>@(ticket.descripcion.Length > 50 ? ticket.descripcion.Substring(0, 50) + "..." : ticket.descripcion)</td>
+                                    <td>
+                                        <a href="@Url.Action("DetalleTicket", new { id = ticket.ticketId })" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </a>
+                                    </td>
+                                </tr>
+
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center">No hay tickets recientes</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

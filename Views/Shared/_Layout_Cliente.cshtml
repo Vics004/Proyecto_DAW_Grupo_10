@@ -32,7 +32,17 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Cliente" asp-action="Dashboard">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Cliente" asp-action="MisTickets">Mis Tickets</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Cliente" asp-action="MiPerfil">Mi Perfil</a>
+                        </li>
+                    </ul>
                     <a class="nav-link" asp-area="" asp-controller="login" asp-action="Logout" style="color: blue;">
                         <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
                     </a>

@@ -1,0 +1,59 @@
+﻿@model Proyecto_DAW_Grupo_10.Models.usuario
+@{
+    Layout = "_Layout_Cliente";
+    ViewData["Title"] = "Editar Perfil";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4" style="color: #001f3f; font-weight: bold;">Editar Perfil</h1>
+
+    <form asp-action="EditarPerfil" method="post" class="border p-4 rounded" style="background-color: #f8f9fa; border-color: #b3cde0 !important;">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="nombre" class="form-label fw-bold" style="color: #004080;"></label>
+                    <input asp-for="nombre" class="form-control" style="border-color: #a7c7e7;" />
+                    <span asp-validation-for="nombre" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="correo" class="form-label fw-bold" style="color: #004080;"></label>
+                    <input asp-for="correo" class="form-control" style="border-color: #a7c7e7;" />
+                    <span asp-validation-for="correo" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="telefono" class="form-label fw-bold" style="color: #004080;"></label>
+                    <input asp-for="telefono" class="form-control" style="border-color: #a7c7e7;" />
+                    <span asp-validation-for="telefono" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label asp-for="empresa" class="form-label fw-bold" style="color: #004080;"></label>
+                    <input asp-for="empresa" class="form-control" style="border-color: #a7c7e7;" />
+                    <span asp-validation-for="empresa" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="contactoPrincipal" class="form-label fw-bold" style="color: #004080;"></label>
+                    <input asp-for="contactoPrincipal" class="form-control" style="border-color: #a7c7e7;" />
+                    <span asp-validation-for="contactoPrincipal" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="detalleContacto" class="form-label fw-bold" style="color: #004080;"></label>
+                    <textarea asp-for="detalleContacto" class="form-control" style="border-color: #a7c7e7; height: 100px;"></textarea>
+                    <span asp-validation-for="detalleContacto" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-end mt-4">
+            <a href="@Url.Action("MiPerfil")" class="btn btn-secondary me-2">Cancelar</a>
+            <button type="submit" class="btn" style="background-color: #00509e; color: white;">Guardar Cambios</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,253 @@
+﻿@{
+    Layout = "_Layout_Cliente";
+    ViewData["Title"] = "Detalle del Ticket";
+    var ticket = ViewBag.Ticket;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 style="color: #001f3f; font-weight: bold;">Detalle del Ticket #@ticket.ticketId</h1>
+    </div>
+
+    <!-- Card principal con detalles -->
+    <div class="card mb-4">
+        <div class="card-header" style="background-color: #003366; color: white;">
+            <h5 class="mb-0">Información del Ticket</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <h6 style="color: #004080; font-weight: bold;">Problema</h6>
+                        <p>@ticket.Problema</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 style="color: #004080; font-weight: bold;">Categoría</h6>
+                        <p>@ticket.Categoria</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6 style="color: #004080; font-weight: bold;">Descripción</h6>
+                        <p>@ticket.descripcion</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <h6 style="color: #004080; font-weight: bold;">Prioridad</h6>
+                        <span class="badge @(ticket.Prioridad == "Urgente" ? "bg-danger" :
+                                          ticket.Prioridad == "Alta" ? "bg-warning text-dark" :
+                                          ticket.Prioridad == "Media" ? "bg-info" : "bg-secondary")">
+                            @ticket.Prioridad
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <h6 style="color: #004080; font-weight: bold;">Estado</h6>
+                        <span class="badge @(ticket.Estado == "Finalizado" ? "bg-success" :
+                                          ticket.Estado == "En proceso" ? "bg-primary" :
+                                          ticket.Estado == "Cancelado" ? "bg-danger" : "bg-secondary")">
+                            @ticket.Estado
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <h6 style="color: #004080; font-weight: bold;">Fecha Apertura</h6>
+                        <p>@ticket.fechaApertura.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                    @if (ticket.fechaCierre != null)
+                    {
+                        <div class="mb-3">
+                            <h6 style="color: #004080; font-weight: bold;">Fecha Cierre</h6>
+                            <p>@ticket.fechaCierre?.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Archivos Adjuntos -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #003366; color: white;">
+            <h5 class="mb-0">Archivos Adjuntos</h5>
+            @if (ticket.Estado != "Finalizado" && ticket.Estado != "Cancelado")
+            {
+                <button type="button" class="btn btn-sm" style="background-color: #00509e; color: white;"
+                        onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-upload"></i> Subir archivo
+                </button>
+                <input type="file" id="fileInput" style="display: none;" onchange="subirArchivo(this)" />
+            }
+        </div>
+        <div class="card-body">
+            @if (ViewBag.Archivos != null && ViewBag.Archivos.Count > 0)
+            {
+                <div class="list-group">
+                    @foreach (var archivo in ViewBag.Archivos)
+                    {
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-file me-2"></i>
+                                    @archivo.nombreArchivo
+                                </div>
+                                <small class="text-muted">@archivo.fechaCarga.ToString("dd/MM/yyyy HH:mm")</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p>No hay archivos adjuntos.</p>
+            }
+        </div>
+    </div>
+
+    <!-- Comentarios -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #003366; color: white;">
+            <h5 class="mb-0">Comentarios</h5>
+            @if (ticket.Estado != "Finalizado" && ticket.Estado != "Cancelado")
+            {
+                <button type="button" class="btn btn-sm" style="background-color: #00509e; color: white;"
+                        onclick="toggleComentario()">
+                    <i class="fas fa-comment"></i> Agregar comentario
+                </button>
+            }
+        </div>
+        <div class="card-body">
+            <!-- Formulario para nuevo comentario (oculto inicialmente) -->
+            <div id="formComentario" style="display: none;" class="mb-4">
+                <form id="comentarioForm">
+                    <input type="hidden" name="ticketId" value="@ticket.ticketId" />
+                    <div class="mb-3">
+                        <textarea name="texto" class="form-control" rows="3" placeholder="Escribe tu comentario..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn" style="background-color: #00509e; color: white;">Enviar comentario</button>
+                </form>
+            </div>
+
+            <!-- Lista de comentarios -->
+            <div class="timeline">
+                @if (ViewBag.Comentarios != null && ViewBag.Comentarios.Count > 0)
+                {
+                    foreach (var comentario in ViewBag.Comentarios)
+                    {
+                        <div class="timeline-item @(comentario.usuarioId == ViewBag.UsuarioId ? "timeline-item-right" : "")">
+                            <div class="timeline-point"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-header">
+                                    <span class="timeline-user">@comentario.usuarioNombre</span>
+                                    <span class="timeline-date">@comentario.fecha.ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                                <div class="timeline-body">
+                                    <p>@comentario.texto</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>No hay comentarios aún.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleComentario() {
+            const form = document.getElementById("formComentario");
+            form.style.display = form.style.display === "none" ? "block" : "none";
+        }
+
+        function subirArchivo(input) {
+            if (input.files && input.files[0]) {
+                const formData = new FormData();
+                formData.append('ticketId', '@ticket.ticketId');
+                formData.append('archivo', input.files[0]);
+
+                fetch('@Url.Action("SubirArchivo", "Cliente")', {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    }
+                });
+            }
+        }
+
+        document.getElementById("comentarioForm")?.addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('@Url.Action("AgregarComentario", "Cliente")', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                }
+            });
+        });
+    </script>
+
+    <style>
+        .timeline {
+            position: relative;
+            padding-left: 1rem;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.5rem;
+            padding-left: 2rem;
+        }
+
+        .timeline-item-right {
+            margin-left: auto;
+            padding-left: 0;
+            padding-right: 2rem;
+            text-align: right;
+        }
+
+        .timeline-point {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 1rem;
+            height: 1rem;
+            background-color: #00509e;
+            border-radius: 50%;
+        }
+
+        .timeline-item-right .timeline-point {
+            left: auto;
+            right: 0;
+        }
+
+        .timeline-content {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .timeline-user {
+            font-weight: bold;
+            color: #00509e;
+        }
+
+        .timeline-date {
+            color: #6c757d;
+        }
+    </style>
+}

@@ -1,0 +1,168 @@
+﻿@{
+    Layout = "_Layout_Cliente";
+    ViewData["Title"] = "Crear Nuevo Ticket";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4" style="color: #001f3f; font-weight: bold;">Crear un nuevo ticket</h1>
+
+    <form id="ticketForm" method="post" enctype="multipart/form-data" class="border p-4 rounded" style="background-color: #f8f9fa; border-color: #b3cde0 !important;">
+        <!-- Categoría y Problema -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold" style="color: #004080;">Categoría</label>
+                <select id="categoriaSelect" class="form-select" style="border-color: #a7c7e7;" required>
+                    <option value="">Elegir una opción</option>
+                    @foreach (var cat in (IEnumerable<dynamic>)ViewData["listaCategorias"])
+                    {
+                        <option value="@cat.categoriaId">@cat.nombre</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold" style="color: #004080;">Aplicación o Servicio</label>
+                <select id="problemaSelect" name="problemaId" class="form-select" style="border-color: #a7c7e7;" required>
+                    <option value="">Primero seleccione una categoría</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="mb-3">
+            <label class="form-label fw-bold" style="color: #004080;">Descripción del problema</label>
+            <textarea name="descripcion" class="form-control" style="border-color: #a7c7e7; height: 120px;"
+                      placeholder="Describa detalladamente el problema o servicio que desea solicitar..." required></textarea>
+        </div>
+
+        <!-- Prioridad -->
+        <div class="mb-3">
+            <label class="form-label fw-bold" style="color: #004080;">Prioridad</label>
+            @Html.DropDownList("prioridadId", ViewData["listaPrioridades"] as SelectList, "Elegir una opción",
+                     new { @class = "form-select", style = "border-color: #a7c7e7;", required = "required" })
+        </div>
+
+        <!-- Información del usuario (desde sesión) -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold" style="color: #004080;">Nombre</label>
+                <input type="text" class="form-control" style="border-color: #a7c7e7;"
+                       value="@Context.Session.GetString("nombre")" readonly />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold" style="color: #004080;">Teléfono</label>
+                <input type="text" class="form-control" style="border-color: #a7c7e7;"
+                       value="@Context.Session.GetString("telefono")" readonly />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold" style="color: #004080;">Correo electrónico</label>
+                <input type="email" class="form-control" style="border-color: #a7c7e7;"
+                       value="@Context.Session.GetString("correo")" readonly />
+            </div>
+        </div>
+
+        <!-- Adjuntar archivo -->
+        <div class="mb-3">
+            <label class="form-label fw-bold" style="color: #004080;">Adjuntar archivos</label>
+            <div class="border p-2 rounded mb-2" style="border-color: #a7c7e7 !important; background-color: white;">
+                <div id="archivoInfo">
+                    <small class="text-muted">Ningún archivo seleccionado</small>
+                </div>
+            </div>
+            <input type="file" id="archivoAdjunto" name="archivoAdjunto" class="form-control" style="border-color: #a7c7e7;"
+                   onchange="mostrarInfoArchivo(this)" />
+        </div>
+
+        <!-- Botones -->
+        <div class="text-end mt-4">
+            <a href="@Url.Action("Dashboard")" class="btn btn-secondary me-2">Cancelar</a>
+            <button type="submit" class="btn" style="background-color: #00509e; color: white;">Enviar Ticket</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Cargar problemas según categoría seleccionada
+        document.getElementById('categoriaSelect').addEventListener('change', function () {
+            var categoriaId = this.value;
+            var problemaSelect = document.getElementById('problemaSelect');
+
+            if (categoriaId) {
+                fetch('/Cliente/ObtenerProblemasPorCategoria?categoriaId=' + categoriaId)
+                    .then(response => response.json())
+                    .then(data => {
+                        problemaSelect.innerHTML = '<option value="">Elegir una opción</option>';
+                        data.forEach(function (problema) {
+                            var option = document.createElement('option');
+                            option.value = problema.problemaId;
+                            option.textContent = problema.nombre;
+                            problemaSelect.appendChild(option);
+                        });
+                    });
+            } else {
+                problemaSelect.innerHTML = '<option value="">Primero seleccione una categoría</option>';
+            }
+        });
+
+        // Mostrar información del archivo seleccionado
+        function mostrarInfoArchivo(input) {
+            const archivoInfo = document.getElementById('archivoInfo');
+
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const fileSize = (file.size / (1024 * 1024)).toFixed(2); // Tamaño en MB
+
+                archivoInfo.innerHTML = `
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <i class="fas fa-file"></i>
+                                    <strong>${file.name}</strong>
+                                </div>
+                                <div>
+                                    <small class="text-muted">${fileSize} MB</small>
+                                </div>
+                            </div>
+                            <div>
+                                <small class="text-muted">Tipo: ${file.type || 'No especificado'}</small>
+                            </div>
+                        `;
+            } else {
+                archivoInfo.innerHTML = '<small class="text-muted">Ningún archivo seleccionado</small>';
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('ticketForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const response = await fetch('/Cliente/CrearTicket', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    // Si hay archivo adjunto, subirlo después de crear el ticket
+                    const archivoInput = document.getElementById('archivoAdjunto');
+                    if (archivoInput.files && archivoInput.files[0]) {
+                        const archivoData = new FormData();
+                        archivoData.append('ticketId', result.ticketId);
+                        archivoData.append('archivo', archivoInput.files[0]);
+
+                        await fetch('/Cliente/SubirArchivo', {
+                            method: 'POST',
+                            body: archivoData
+                        });
+                    }
+                    window.location.href = '/Cliente/Dashboard';
+                } else {
+                    alert('Error al crear el ticket: ' + result.message);
+                }
+            } else {
+                alert('Error en la solicitud');
+            }
+        });
+    </script>
+}
