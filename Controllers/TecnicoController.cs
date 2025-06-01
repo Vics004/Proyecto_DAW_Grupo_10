@@ -26,7 +26,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                     join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
                                     join ti in _ticketsDbContext.ticket on t.ticketId equals ti.ticketId
                                     join p in _ticketsDbContext.prioridad on ti.prioridadId equals p.prioridadId
-                                    where e.nombre != creado && e.nombre != Finalizado && u.usuarioId == usuario
+                                    where e.nombre != creado && e.nombre != Finalizado && u.usuarioId == usuario && e.nombre != "Cancelado"
                                     select new
                                     {
                                         ID = t.tareaId,
@@ -40,7 +40,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                     join u in _ticketsDbContext.usuario on t.usuarioAsignadoId equals u.usuarioId
                                     join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
                                     join ti in _ticketsDbContext.ticket on t.ticketId equals ti.ticketId
-                                    where (e.nombre == Finalizado || e.nombre == "Cancleado") && u.usuarioId == usuario
+                                    where (e.nombre == Finalizado || e.nombre == "Cancelado") && u.usuarioId == usuario
                                     select new
                                     {
                                         ID = t.tareaId,
@@ -69,12 +69,14 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                  join u in _ticketsDbContext.usuario on ta.usuarioAsignadoId equals u.usuarioId
                                  join e in _ticketsDbContext.estado on ta.estadoId equals e.estadoId
                                  join ti in _ticketsDbContext.ticket on ta.ticketId equals ti.ticketId
+                                 join u2 in _ticketsDbContext.usuario on ti.usuarioCreadorId equals u2.usuarioId
                                  join p in _ticketsDbContext.prioridad on ti.prioridadId equals p.prioridadId
                                  join pro in _ticketsDbContext.problema on ti.problemaId equals pro.problemaId
                                  join c in _ticketsDbContext.categoria on pro.categoriaId equals c.categoriaId
                                  where ta.tareaId == id
                                  select new
                                  {
+                                     Usuariocreador = u2.nombre,
                                      Usuario = u.nombre,
                                      FechaInicio = ti.fechaApertura,
                                      FechaCierre = ti.fechaCierre,
@@ -205,7 +207,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                           join p in _ticketsDbContext.prioridad on ti.prioridadId equals p.prioridadId
                           join pro in _ticketsDbContext.problema on ti.problemaId equals pro.problemaId
                           join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
-                          where u.usuarioId == usuarioId && e.nombre != creado && e.nombre != Finalizado && e.nombre != "Calncelado"
+                          where u.usuarioId == usuarioId && e.nombre != creado && e.nombre != Finalizado && e.nombre != "Cancelado"
                           select new
                           {
                               ID = t.tareaId,

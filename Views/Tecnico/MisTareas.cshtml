@@ -1,4 +1,7 @@
-﻿<div class="container-fluid">
+﻿@{
+    Layout = null;
+}
+<div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
         <nav class="col-md-3 col-lg-2 d-md-block sidebar">
@@ -33,7 +36,7 @@
                     </li>
                 </ul>
                 <div class="mt-auto p-3 border-top">
-                    <a href="#" class="nav-link logout-link">
+                    <a href="/Login/Logout" class="nav-link logout-link">
                         <span data-feather="log-out"></span>
                         Cerrar Sesión
                     </a>

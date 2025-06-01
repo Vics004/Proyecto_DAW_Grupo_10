@@ -3,6 +3,7 @@
 *@
 @{
     var detalles2 = ViewBag.tareasDetalles;
+    Layout = null;
 }
 
 <div class="container-fluid">
@@ -40,7 +41,7 @@
                     </li>
                 </ul>
                 <div class="mt-auto p-3 border-top">
-                    <a href="#" class="nav-link logout-link">
+                    <a href="/Login/Logout" class="nav-link logout-link">
                         <span data-feather="log-out"></span>
                         Cerrar Sesión
                     </a>
@@ -66,7 +67,7 @@
                             </div>
                             <div class="info-content">
                                 <span class="info-label">Cliente</span>
-                                <span class="info-value">@detalles2.Usuario</span>
+                                <span class="info-value">@detalles2.Usuariocreador</span>
                             </div>
                         </div>
 
