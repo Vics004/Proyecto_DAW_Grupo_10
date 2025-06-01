@@ -1,0 +1,790 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    var detalles2 = ViewBag.tareasDetalles;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+            <div class="position-sticky pt-3">
+                <div class="company-header">
+                    <h4 class="company-name">Nombre empresa</h4>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="./Dashboard">
+                            <span data-feather="home"></span>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="./MisTareas">
+                            <span data-feather="file-text"></span>
+                            <strong>Mis Tareas</strong>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./HistorialTareas">
+                            <span data-feather="clock"></span>
+                            Historial de Tareas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./MisTickets">
+                            <span data-feather="tag"></span>
+                            Mis Tickets
+                        </a>
+                    </li>
+                </ul>
+                <div class="mt-auto p-3 border-top">
+                    <a href="#" class="nav-link logout-link">
+                        <span data-feather="log-out"></span>
+                        Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 main-content">
+            <!-- Header con título -->
+            <div class="page-header mb-4">
+                <h2 class="page-title">Detalles de Tarea</h2>
+            </div>
+
+            <!-- Card principal con detalles -->
+            <div class="task-card mb-4">
+                <div class="task-card-body">
+                    <!-- Información principal en grid -->
+                    <div class="task-info-grid">
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <span data-feather="user"></span>
+                            </div>
+                            <div class="info-content">
+                                <span class="info-label">Cliente</span>
+                                <span class="info-value">@detalles2.Usuario</span>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <span data-feather="tag"></span>
+                            </div>
+                            <div class="info-content">
+                                <span class="info-label">Categoría</span>
+                                <span class="info-value">@detalles2.Categoria</span>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <span data-feather="calendar"></span>
+                            </div>
+                            <div class="info-content">
+                                <span class="info-label">Fecha de inicio</span>
+                                <span class="info-value">@detalles2.FechaInicio</span>
+                            </div>
+                        </div>
+
+                        @if (ViewBag.EstadoTerminado)
+                        {
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <span data-feather="check-circle"></span>
+                                </div>
+                                <div class="info-content">
+                                    <span class="info-label">Fecha Cierre</span>
+                                    <span class="info-value">@detalles2.FechaCierre</span>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <span data-feather="activity"></span>
+                            </div>
+                            <div class="info-content">
+                                <span class="info-label">Estado</span>
+                                <span class="status-badge status-@detalles2.Estado.ToLower().Replace(" ", "-")">@detalles2.Estado</span>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <span data-feather="alert-triangle"></span>
+                            </div>
+                            <div class="info-content">
+                                <span class="info-label">Prioridad</span>
+                                <span class="priority-badge priority-@detalles2.Prioridad.ToLower()">@detalles2.Prioridad</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de cambio de estado -->
+                    @if (ViewBag.EstadoTerminado == false)
+                    {
+                        <div class="state-change-section">
+                            <form asp-action="CambiarEstado" method="post">
+                                <div class="state-form-group">
+                                    <label class="state-form-label">Modificar estado</label>
+                                    <div class="state-form-controls">
+                                        @Html.DropDownList("estadoId", ViewData["Estados"] as List<SelectListItem>, "En proceso", new { @class = "state-select" })
+                                        <input type="hidden" name="id" value="@ViewBag.ID" />
+                                        <button type="submit" class="btn-primary-custom">Guardar estado</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Archivos Adjuntos -->
+            <div class="section-card mb-4">
+                <div class="section-header">
+                    <h3 class="section-title">Archivos Adjuntos</h3>
+                    @if (ViewBag.EstadoTerminado == false)
+                    {
+                        <form asp-action="SubirArchivo" method="post">
+                            <input type="hidden" name="id" value="@ViewBag.ID" />
+                            <button type="submit" class="btn-secondary-custom">
+                                <span data-feather="upload"></span>
+                                Subir
+                            </button>
+                        </form>
+                    }
+                </div>
+                <div class="section-body">
+                    <div class="files-list">
+                        @foreach (var item in (IEnumerable<dynamic>)ViewData["ArchivosAdjuntos"])
+                        {
+                            <div class="file-item">
+                                <div class="file-icon">
+                                    <span data-feather="file"></span>
+                                </div>
+                                <div class="file-info">
+                                    <span class="file-name">@item.NombreArchivo</span>
+                                    <span class="file-date">Guardado el @item.FechaSubida.ToString("dd/MM/yyyy HH:mm")</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comentarios -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">Comentarios</h3>
+                    @if (ViewBag.EstadoTerminado == false)
+                    {
+                        <button type="button" class="btn-secondary-custom" onclick="toggleComentario()">
+                            <span data-feather="message-circle"></span>
+                            Añadir Comentario
+                        </button>
+                    }
+                </div>
+                <div class="section-body">
+                    @if (ViewBag.EstadoTerminado == false)
+                    {
+                        <div id="formComentario" class="comment-form-container">
+                            <form id="comentarioForm" class="comment-form">
+                                <input type="hidden" name="id" value="@ViewBag.ID" />
+                                <input type="hidden" name="id2" value="@ViewBag.Ticket" />
+                                <div class="comment-input-group">
+                                    <textarea name="comentario" class="comment-textarea" rows="3" placeholder="Escribe tu comentario" required></textarea>
+                                    <button type="submit" class="btn-primary-custom">Subir</button>
+                                </div>
+                            </form>
+                        </div>
+                    }
+
+                    <div class="comments-timeline">
+                        @foreach (var item in (IEnumerable<dynamic>)ViewData["Actividad"])
+                        {
+                            <div class="timeline-item">
+                                <div class="timeline-marker">
+                                    @if (item.Tipo == "Cambio de Estado")
+                                    {
+                                        <span data-feather="settings"></span>
+                                    }
+                                    else
+                                    {
+                                        <span data-feather="message-square"></span>
+                                    }
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        @if (item.Tipo == "Cambio de Estado")
+                                        {
+                                            <span class="timeline-author">Modificado por: @item.Usuario</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="timeline-author">Comentario de: @item.Usuario</span>
+                                        }
+                                        <span class="timeline-date">@item.Fecha.ToString("dd/MM/yyyy HH:mm")</span>
+                                    </div>
+                                    <div class="timeline-body">
+                                        <p>@item.Detalle</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón volver -->
+            <div class="action-buttons">
+                @Html.ActionLink("Volver", "Dashboard", "Tecnico", null, new { @class = "btn-outline-custom" })
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    function toggleComentario() {
+        const form = document.getElementById("formComentario");
+        form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Initialize feather icons
+        if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+
+        const form = document.getElementById("comentarioForm");
+        if (form) {
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+
+                const formData = new FormData(form);
+                fetch('@Url.Action("SubirComentario", "Tecnico")', {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    if (response.ok) {
+                        document.getElementById("formComentario").style.display = "none";
+                        form.querySelector("textarea").value = "";
+                        location.reload();
+                    }
+                });
+            });
+        }
+    });
+</script>
+
+<style>
+    :root {
+        --primary-color: #6366f1;
+        --primary-dark: #4f46e5;
+        --secondary-color: #64748b;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --light-gray: #f8fafc;
+        --medium-gray: #e2e8f0;
+        --dark-gray: #475569;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    body {
+        background-color: var(--light-gray);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: var(--text-primary);
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+        background: white;
+        border-right: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        height: 100vh;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+    }
+
+    .company-header {
+        padding: 1.5rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 1rem;
+    }
+
+    .company-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin: 0;
+    }
+
+    .sidebar .nav-link {
+        color: var(--text-secondary);
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        margin: 0 0.75rem 0.25rem;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+        .sidebar .nav-link svg {
+            width: 18px;
+            height: 18px;
+            margin-right: 0.75rem;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: var(--light-gray);
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+        }
+
+    .logout-link {
+        color: var(--danger-color) !important;
+    }
+
+        .logout-link:hover {
+            background-color: #fee2e2 !important;
+        }
+
+    /* Main Content */
+    .main-content {
+        margin-left: 16.66667%; /* Offset for sidebar */
+        padding: 2rem;
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    /* Task Card */
+    .task-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+    }
+
+    .task-card-body {
+        padding: 2rem;
+    }
+
+    .task-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--light-gray);
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .info-icon {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        background: var(--primary-color);
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .info-icon svg {
+            width: 20px;
+            height: 20px;
+            color: white;
+        }
+
+    .info-content {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .info-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    .info-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    /* Status and Priority Badges */
+    .status-badge, .priority-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .status-asignado {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-en-proceso {
+        background-color: #fef3c7;
+        color: #d97706;
+    }
+
+    .status-finalizado {
+        background-color: #d1fae5;
+        color: #059669;
+    }
+
+    .priority-urgente {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
+    .priority-alta {
+        background-color: #fed7d7;
+        color: #e53e3e;
+    }
+
+    .priority-media {
+        background-color: #fef3c7;
+        color: #d97706;
+    }
+
+    .priority-baja {
+        background-color: #e0e7ff;
+        color: #6366f1;
+    }
+
+    /* State Change Section */
+    .state-change-section {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .state-form-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.75rem;
+    }
+
+    .state-form-controls {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .state-select {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        background: white;
+        font-size: 0.875rem;
+        color: var(--text-primary);
+    }
+
+    /* Section Cards */
+    .section-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+    }
+
+    .section-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+        flex: 1;
+    }
+
+    .section-body {
+        padding: 2rem;
+    }
+
+    /* Buttons */
+    .btn-primary-custom {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+        .btn-primary-custom:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+    .btn-secondary-custom {
+        background: var(--light-gray);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+        .btn-secondary-custom:hover {
+            background: var(--medium-gray);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+    .btn-outline-custom {
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+        .btn-outline-custom:hover {
+            background: var(--light-gray);
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+    /* Files Section */
+    .files-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .file-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--light-gray);
+        border-radius: 0.5rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .file-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--secondary-color);
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .file-icon svg {
+            width: 20px;
+            height: 20px;
+            color: white;
+        }
+
+    .file-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .file-name {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .file-date {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    /* Comments Section */
+    .comment-form-container {
+        display: none;
+        margin-bottom: 2rem;
+    }
+
+    .comment-form {
+        background: var(--light-gray);
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .comment-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .comment-textarea {
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        font-family: inherit;
+        font-size: 0.875rem;
+        resize: vertical;
+        min-height: 100px;
+    }
+
+        .comment-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
+        }
+
+    /* Timeline */
+    .comments-timeline {
+        position: relative;
+    }
+
+    .timeline-item {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+        .timeline-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 44px;
+            bottom: -2rem;
+            width: 2px;
+            background: var(--border-color);
+        }
+
+    .timeline-marker {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        background: var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+    }
+
+        .timeline-marker svg {
+            width: 18px;
+            height: 18px;
+            color: white;
+        }
+
+    .timeline-content {
+        flex: 1;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+
+    .timeline-header {
+        padding: 1rem 1.5rem;
+        background: var(--light-gray);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .timeline-author {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .timeline-date {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .timeline-body {
+        padding: 1.5rem;
+    }
+
+        .timeline-body p {
+            margin: 0;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+    /* Action Buttons */
+    .action-buttons {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+   
+</style>
