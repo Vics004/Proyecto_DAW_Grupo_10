@@ -21,7 +21,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         {
             // Obtener datos de sesión
             var usuarioId = HttpContext.Session.GetInt32("usuarioId");
-            var rolId = HttpContext.Session.GetInt32("rolId");
+            var rolNombre = HttpContext.Session.GetString("tipoUsuario");
             var nombreUsuario = HttpContext.Session.GetString("nombre");
 
             // Si no está autenticado, redirigir a login
@@ -40,18 +40,18 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                    rolId = r.rolId
                                }).FirstOrDefault();
 
-            // Establecer ViewBag con el layout correspondiente
-            switch (usuarioInfo?.rolId ?? rolId)
+            // Establecer ViewBag con el layout correspondiente basado en el nombre del rol
+            switch (usuarioInfo?.rolNombre ?? rolNombre)
             {
-                case 1:
+                case "Cliente":
                     ViewBag.Layout = "_Layout_Cliente";
                     ViewData["tipoUsuario"] = "Cliente";
                     break;
-                case 2:
+                case "Tecnico":
                     ViewBag.Layout = "_Layout_Tecnico";
                     ViewData["tipoUsuario"] = "Tecnico";
                     break;
-                case 3:
+                case "Administrador":
                     ViewBag.Layout = "_Layout";
                     ViewData["tipoUsuario"] = "Administrador";
                     break;
@@ -65,7 +65,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         {
             ViewData["ErrorMessage"] = "";
             return View();
-
         }
 
         [HttpPost]
@@ -75,7 +74,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                  join r in _TicketsDbContexto.rol on u.rolId equals r.rolId
                                  where u.nombre == txtUsuario
                                  && u.contrasenia == txtClave
-                                 && (u.rolId == 1 || u.rolId == 2 || u.rolId == 3)
+                                 && (r.nombre == "Cliente" || r.nombre == "Tecnico" || r.nombre == "Administrador")
                                  && u.activo == true
                                  select new
                                  {
@@ -87,19 +86,13 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             if (usuario != null)
             {
                 HttpContext.Session.SetInt32("usuarioId", usuario.usuario.usuarioId);
-                HttpContext.Session.SetString("TipoUsuario", usuario.rolNombre);
-                HttpContext.Session.SetString("Nombre", usuario.usuario.nombre);
-                HttpContext.Session.SetInt32("RolId", usuario.rolId);
+                HttpContext.Session.SetString("tipoUsuario", usuario.rolNombre);
+                HttpContext.Session.SetString("nombre", usuario.usuario.nombre);
+                HttpContext.Session.SetString("telefono", usuario.usuario.telefono);
+                HttpContext.Session.SetString("correo", usuario.usuario.correo);
+                HttpContext.Session.SetInt32("rolId", usuario.rolId);
 
-                switch (usuario.rolId)
-                {
-                    case 1:
-                        return RedirectToAction("Index", "login");
-                    case 2:
-                        return RedirectToAction("Index", "login");
-                    case 3:
-                        return RedirectToAction("Index", "login");
-                }
+                return RedirectToAction("Index", "login");
             }
 
             ViewData["ErrorMessage"] = "Error, usuario inválido";
@@ -113,3 +106,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         }
     }
 }
+
+
+
