@@ -19,6 +19,7 @@ namespace Proyecto_DAW_Grupo_10.Models
         public bool activo {  get; set; }
         public bool tipoUsuario { get; set; }
         public int rolId { get; set; }
+        public rol? rol { get; set; }
     }
 }
 
