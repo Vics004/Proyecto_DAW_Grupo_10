@@ -11,36 +11,36 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label asp-for="nombre" class="form-label fw-bold" style="color: #004080;"></label>
+                    <label asp-for="nombre" class="form-label fw-bold" style="color: #004080;">Nombre</label>
                     <input asp-for="nombre" class="form-control" style="border-color: #a7c7e7;" />
                     <span asp-validation-for="nombre" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="correo" class="form-label fw-bold" style="color: #004080;"></label>
+                    <label asp-for="correo" class="form-label fw-bold" style="color: #004080;">Correo</label>
                     <input asp-for="correo" class="form-control" style="border-color: #a7c7e7;" />
                     <span asp-validation-for="correo" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="telefono" class="form-label fw-bold" style="color: #004080;"></label>
+                    <label asp-for="telefono" class="form-label fw-bold" style="color: #004080;">Teléfono</label>
                     <input asp-for="telefono" class="form-control" style="border-color: #a7c7e7;" />
                     <span asp-validation-for="telefono" class="text-danger"></span>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label asp-for="empresa" class="form-label fw-bold" style="color: #004080;"></label>
-                    <input asp-for="empresa" class="form-control" style="border-color: #a7c7e7;" />
+                    <label asp-for="empresa" class="form-label fw-bold" style="color: #004080;">Empresa</label>
+                    <input asp-for="empresa" class="form-control" style="border-color: #a7c7e7;" readonly/>
                     <span asp-validation-for="empresa" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="contactoPrincipal" class="form-label fw-bold" style="color: #004080;"></label>
-                    <input asp-for="contactoPrincipal" class="form-control" style="border-color: #a7c7e7;" />
+                    <label asp-for="contactoPrincipal" class="form-label fw-bold" style="color: #004080;">Contacto Principal</label>
+                    <input asp-for="contactoPrincipal" class="form-control" style="border-color: #a7c7e7;" readonly/>
                     <span asp-validation-for="contactoPrincipal" class="text-danger"></span>
                 </div>
                 <div class="mb-3">
-                    <label asp-for="detalleContacto" class="form-label fw-bold" style="color: #004080;"></label>
-                    <textarea asp-for="detalleContacto" class="form-control" style="border-color: #a7c7e7; height: 100px;"></textarea>
-                    <span asp-validation-for="detalleContacto" class="text-danger"></span>
+                    <label asp-for="detalleContacto" class="form-label fw-bold" style="color: #004080;">Detalle del Contacto</label>
+                    <textarea asp-for="detalleContacto" class="form-control" style="border-color: #a7c7e7; height: 100px;" readonly></textarea>
+                    <span asp-validation-for="detalleContacto" class="text-danger" ></span>
                 </div>
             </div>
         </div>
