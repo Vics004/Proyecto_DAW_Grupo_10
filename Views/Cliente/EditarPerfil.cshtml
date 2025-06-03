@@ -4,53 +4,294 @@
     ViewData["Title"] = "Editar Perfil";
 }
 
-<div class="container mt-4">
-    <h1 class="mb-4" style="color: #001f3f; font-weight: bold;">Editar Perfil</h1>
-
-    <form asp-action="EditarPerfil" method="post" class="border p-4 rounded" style="background-color: #f8f9fa; border-color: #b3cde0 !important;">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label asp-for="nombre" class="form-label fw-bold" style="color: #004080;">Nombre</label>
-                    <input asp-for="nombre" class="form-control" style="border-color: #a7c7e7;" />
-                    <span asp-validation-for="nombre" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="correo" class="form-label fw-bold" style="color: #004080;">Correo</label>
-                    <input asp-for="correo" class="form-control" style="border-color: #a7c7e7;" />
-                    <span asp-validation-for="correo" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="telefono" class="form-label fw-bold" style="color: #004080;">Teléfono</label>
-                    <input asp-for="telefono" class="form-control" style="border-color: #a7c7e7;" />
-                    <span asp-validation-for="telefono" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label asp-for="empresa" class="form-label fw-bold" style="color: #004080;">Empresa</label>
-                    <input asp-for="empresa" class="form-control" style="border-color: #a7c7e7;" readonly/>
-                    <span asp-validation-for="empresa" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="contactoPrincipal" class="form-label fw-bold" style="color: #004080;">Contacto Principal</label>
-                    <input asp-for="contactoPrincipal" class="form-control" style="border-color: #a7c7e7;" readonly/>
-                    <span asp-validation-for="contactoPrincipal" class="text-danger"></span>
-                </div>
-                <div class="mb-3">
-                    <label asp-for="detalleContacto" class="form-label fw-bold" style="color: #004080;">Detalle del Contacto</label>
-                    <textarea asp-for="detalleContacto" class="form-control" style="border-color: #a7c7e7; height: 100px;" readonly></textarea>
-                    <span asp-validation-for="detalleContacto" class="text-danger" ></span>
-                </div>
-            </div>
-        </div>
-
-        <div class="text-end mt-4">
-            <a href="@Url.Action("MiPerfil")" class="btn btn-secondary me-2">Cancelar</a>
-            <button type="submit" class="btn" style="background-color: #00509e; color: white;">Guardar Cambios</button>
-        </div>
-    </form>
+<div class="dashboard-header">
+    <h1 class="dashboard-title">
+        <i class="fas fa-user-edit" style="margin-right: 0.75rem; color: var(--primary-color);"></i>
+        Editar Perfil
+    </h1>
+    <p class="dashboard-subtitle">Actualiza tu información personal</p>
 </div>
+
+<div class="tasks-section" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border: 2px solid var(--primary-color);">
+    <div class="section-header">
+        <h2 class="section-title">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            Información Personal
+        </h2>
+    </div>
+    
+    <div style="padding: 2rem 2.5rem;">
+        <form asp-action="EditarPerfil" method="post" class="profile-form">
+            <div class="row g-4">
+                <!-- Columna Izquierda - Información Editable -->
+                <div class="col-lg-6">
+                    <div class="profile-section">
+                        <h3 class="profile-section-title">
+                            <i class="fas fa-edit" style="color: var(--primary-color); margin-right: 0.5rem;"></i>
+                            Datos Modificables
+                        </h3>
+                        
+                        <div class="profile-field">
+                            <label asp-for="nombre" class="profile-label">
+                                <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
+                                Nombre Completo
+                            </label>
+                            <input asp-for="nombre" class="form-control profile-input" placeholder="Ingresa tu nombre completo" />
+                            <span asp-validation-for="nombre" class="validation-error"></span>
+                        </div>
+
+                        <div class="profile-field">
+                            <label asp-for="correo" class="profile-label">
+                                <i class="fas fa-envelope" style="margin-right: 0.5rem;"></i>
+                                Correo Electrónico
+                            </label>
+                            <input asp-for="correo" type="email" class="form-control profile-input" placeholder="ejemplo@correo.com" />
+                            <span asp-validation-for="correo" class="validation-error"></span>
+                        </div>
+
+                        <div class="profile-field">
+                            <label asp-for="telefono" class="profile-label">
+                                <i class="fas fa-phone" style="margin-right: 0.5rem;"></i>
+                                Número de Teléfono
+                            </label>
+                            <input asp-for="telefono" type="tel" class="form-control profile-input" placeholder="+503 0000-0000" />
+                            <span asp-validation-for="telefono" class="validation-error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha - Información de Solo Lectura -->
+                <div class="col-lg-6">
+                    <div class="profile-section readonly-section">
+                        <h3 class="profile-section-title">
+                            <i class="fas fa-lock" style="color: var(--secondary-color); margin-right: 0.5rem;"></i>
+                            Información de la Empresa
+                        </h3>
+                        
+                        <div class="profile-field">
+                            <label asp-for="empresa" class="profile-label">
+                                <i class="fas fa-building" style="margin-right: 0.5rem;"></i>
+                                Empresa
+                            </label>
+                            <div class="readonly-field">
+                                <input asp-for="empresa" class="form-control profile-input readonly-input" readonly />
+                                <i class="fas fa-lock readonly-icon"></i>
+                            </div>
+                            <span asp-validation-for="empresa" class="validation-error"></span>
+                        </div>
+
+                        <div class="profile-field">
+                            <label asp-for="contactoPrincipal" class="profile-label">
+                                <i class="fas fa-user-tie" style="margin-right: 0.5rem;"></i>
+                                Contacto Principal
+                            </label>
+                            <div class="readonly-field">
+                                <input asp-for="contactoPrincipal" class="form-control profile-input readonly-input" readonly />
+                                <i class="fas fa-lock readonly-icon"></i>
+                            </div>
+                            <span asp-validation-for="contactoPrincipal" class="validation-error"></span>
+                        </div>
+
+                        <div class="profile-field">
+                            <label asp-for="detalleContacto" class="profile-label">
+                                <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
+                                Detalle del Contacto
+                            </label>
+                            <div class="readonly-field">
+                                <textarea asp-for="detalleContacto" class="form-control profile-input readonly-input" rows="4" readonly></textarea>
+                                <i class="fas fa-lock readonly-icon"></i>
+                            </div>
+                            <span asp-validation-for="detalleContacto" class="validation-error"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="profile-actions">
+                <div class="action-buttons">
+                    <a href="@Url.Action("MiPerfil")" class="btn-secondary">
+                        <i class="fas fa-times" style="margin-right: 0.5rem;"></i>
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save" style="margin-right: 0.5rem;"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Estilos específicos para el formulario de editar perfil */
+    .profile-form {
+        width: 100%;
+    }
+
+    .profile-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .profile-section:hover {
+        box-shadow: var(--shadow-lg);
+    }
+
+    .readonly-section {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-left: 4px solid var(--secondary-color);
+    }
+
+    .profile-section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 1.5rem 0;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border-color);
+        display: flex;
+        align-items: center;
+    }
+
+    .profile-field {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .profile-field:last-child {
+        margin-bottom: 0;
+    }
+
+    .profile-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .profile-input {
+        border: 2px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .profile-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        background: white;
+    }
+
+    .profile-input:hover:not(:focus):not(.readonly-input) {
+        border-color: var(--primary-dark);
+    }
+
+    .readonly-field {
+        position: relative;
+    }
+
+    .readonly-input {
+        background: #f8fafc !important;
+        color: var(--text-secondary) !important;
+        cursor: not-allowed;
+        border-color: var(--medium-gray) !important;
+    }
+
+    .readonly-input:focus {
+        box-shadow: none !important;
+        border-color: var(--medium-gray) !important;
+    }
+
+    .readonly-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--secondary-color);
+        font-size: 0.875rem;
+        pointer-events: none;
+    }
+
+    .validation-error {
+        color: var(--danger-color);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: block;
+        font-weight: 500;
+    }
+
+    .profile-actions {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid var(--border-color);
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary, .btn-secondary {
+        padding: 0.875rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 1rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 140px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        background: linear-gradient(135deg, var(--primary-dark) 0%, #4338ca 100%);
+        color: white;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--text-secondary);
+        border: 2px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: var(--light-gray);
+        border-color: var(--secondary-color);
+        color: var(--text-primary);
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+</style>
 
 @section Scripts {
     @{

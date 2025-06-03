@@ -3,33 +3,523 @@
     ViewData["Title"] = "Cambiar Contraseña";
 }
 
-<div class="container mt-4">
-    <h1 class="mb-4" style="color: #001f3f; font-weight: bold;">Cambiar Contraseña</h1>
+<div class="dashboard-header">
+    <h1 class="dashboard-title">
+        <i class="fas fa-lock" style="margin-right: 0.75rem; color: var(--primary-color);"></i>
+        Cambiar Contraseña
+    </h1>
+    <p class="dashboard-subtitle">Actualiza tu contraseña para mantener tu cuenta segura</p>
+</div>
 
-    <form asp-action="CambiarContrasenia" method="post" class="border p-4 rounded" style="background-color: #f8f9fa; border-color: #b3cde0 !important;">
-        <div class="mb-3">
-            <label class="form-label fw-bold" style="color: #004080;">Contraseña Actual</label>
-            <input type="password" name="contraseniaActual" class="form-control" style="border-color: #a7c7e7;" required />
+<div class="tasks-section security-section">
+    <div class="section-header">
+        <h2 class="section-title">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <circle cx="12" cy="16" r="1"></circle>
+                <path d="m7 11 0-5a5 5 0 0 1 10 0v5"></path>
+            </svg>
+            Seguridad de la Cuenta
+        </h2>
+        <div class="security-tips">
+            <i class="fas fa-shield-alt" style="color: var(--success-color);"></i>
         </div>
-        <div class="mb-3">
-            <label class="form-label fw-bold" style="color: #004080;">Nueva Contraseña</label>
-            <input type="password" name="nuevaContrasenia" class="form-control" style="border-color: #a7c7e7;" required />
-        </div>
-        <div class="mb-3">
-            <label class="form-label fw-bold" style="color: #004080;">Confirmar Nueva Contraseña</label>
-            <input type="password" name="confirmarContrasenia" class="form-control" style="border-color: #a7c7e7;" required />
-        </div>
+    </div>
+    
+    <div style="padding: 2rem 2.5rem;">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-6">
+                <form asp-action="CambiarContrasenia" method="post" class="password-form">
+                    
+                    <!-- Indicadores de Seguridad -->
+                    <div class="security-info">
+                        <div class="security-card">
+                            <div class="security-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="security-content">
+                                <h4>Consejos de Seguridad</h4>
+                                <ul>
+                                    <li>Usa al menos 8 caracteres</li>
+                                    <li>Incluye mayúsculas y minúsculas</li>
+                                    <li>Añade números y símbolos</li>
+                                    <li>Evita información personal</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
 
-        @if (ViewData.ModelState[""]?.Errors.Count > 0)
-        {
-            <div class="alert alert-danger">
-                @ViewData.ModelState[""].Errors.First().ErrorMessage
+                    <!-- Campos de Contraseña -->
+                    <div class="password-fields">
+                        <div class="password-field">
+                            <label class="password-label">
+                                <i class="fas fa-key" style="margin-right: 0.5rem;"></i>
+                                Contraseña Actual
+                            </label>
+                            <div class="password-input-container">
+                                <input type="password" name="contraseniaActual" class="form-control password-input" 
+                                       placeholder="Ingresa tu contraseña actual" required 
+                                       id="currentPassword" />
+                                <button type="button" class="password-toggle" onclick="togglePassword('currentPassword')">
+                                    <i class="fas fa-eye" id="currentPassword-icon"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="password-field">
+                            <label class="password-label">
+                                <i class="fas fa-lock" style="margin-right: 0.5rem;"></i>
+                                Nueva Contraseña
+                            </label>
+                            <div class="password-input-container">
+                                <input type="password" name="nuevaContrasenia" class="form-control password-input" 
+                                       placeholder="Ingresa tu nueva contraseña" required 
+                                       id="newPassword" oninput="checkPasswordStrength(this.value)" />
+                                <button type="button" class="password-toggle" onclick="togglePassword('newPassword')">
+                                    <i class="fas fa-eye" id="newPassword-icon"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="passwordStrength">
+                                <div class="strength-bar">
+                                    <div class="strength-fill" id="strengthFill"></div>
+                                </div>
+                                <span class="strength-text" id="strengthText">Ingresa una contraseña</span>
+                            </div>
+                        </div>
+
+                        <div class="password-field">
+                            <label class="password-label">
+                                <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+                                Confirmar Nueva Contraseña
+                            </label>
+                            <div class="password-input-container">
+                                <input type="password" name="confirmarContrasenia" class="form-control password-input" 
+                                       placeholder="Confirma tu nueva contraseña" required 
+                                       id="confirmPassword" oninput="checkPasswordMatch()" />
+                                <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                                    <i class="fas fa-eye" id="confirmPassword-icon"></i>
+                                </button>
+                            </div>
+                            <div class="password-match" id="passwordMatch"></div>
+                        </div>
+                    </div>
+
+                    <!-- Mensajes de Error -->
+                    @if (ViewData.ModelState[""]?.Errors.Count > 0)
+                    {
+                        <div class="error-alert">
+                            <div class="error-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="error-content">
+                                <strong>Error:</strong>
+                                @ViewData.ModelState[""].Errors.First().ErrorMessage
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Botones de Acción -->
+                    <div class="password-actions">
+                        <div class="action-buttons">
+                            <a href="@Url.Action("MiPerfil")" class="btn-secondary">
+                                <i class="fas fa-times" style="margin-right: 0.5rem;"></i>
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn-primary" id="submitButton" disabled>
+                                <i class="fas fa-shield-alt" style="margin-right: 0.5rem;"></i>
+                                Cambiar Contraseña
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos específicos para cambiar contraseña */
+    .security-section {
+        background: linear-gradient(135deg, #fef7ff 0%, #f3e8ff 100%);
+        border: 2px solid #a855f7;
+    }
+
+    .security-section .section-title {
+        color: var(--text-primary);
+    }
+
+    .security-tips {
+        display: flex;
+        align-items: center;
+        font-size: 1.5rem;
+    }
+
+    .password-form {
+        width: 100%;
+    }
+
+    .security-info {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--success-color);
+    }
+
+    .security-card {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .security-icon {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--success-color), #059669);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.125rem;
+    }
+
+    .security-content h4 {
+        margin: 0 0 0.75rem 0;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .security-content ul {
+        margin: 0;
+        padding-left: 1.25rem;
+        list-style: none;
+    }
+
+    .security-content li {
+        position: relative;
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .security-content li:before {
+        content: "✓";
+        position: absolute;
+        left: -1.25rem;
+        color: var(--success-color);
+        font-weight: bold;
+    }
+
+    .password-fields {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+        margin-bottom: 1.5rem;
+    }
+
+    .password-field {
+        margin-bottom: 1.5rem;
+    }
+
+    .password-field:last-child {
+        margin-bottom: 0;
+    }
+
+    .password-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .password-input-container {
+        position: relative;
+    }
+
+    .password-input {
+        border: 2px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 0.875rem 3rem 0.875rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+        width: 100%;
+    }
+
+    .password-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        background: white;
+    }
+
+    .password-input:hover:not(:focus) {
+        border-color: var(--primary-dark);
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: color 0.3s ease;
+        padding: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .password-toggle:hover {
+        color: var(--primary-color);
+    }
+
+    .password-strength {
+        margin-top: 0.75rem;
+    }
+
+    .strength-bar {
+        width: 100%;
+        height: 4px;
+        background: var(--border-color);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+
+    .strength-fill {
+        height: 100%;
+        width: 0%;
+        transition: all 0.3s ease;
+        border-radius: 2px;
+    }
+
+    .strength-text {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    .password-match {
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .match-success {
+        color: var(--success-color);
+    }
+
+    .match-error {
+        color: var(--danger-color);
+    }
+
+    .error-alert {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        border: 2px solid var(--danger-color);
+        border-radius: 1rem;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .error-icon {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        color: var(--danger-color);
+        font-size: 1.125rem;
+    }
+
+    .error-content {
+        color: var(--danger-color);
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    .password-actions {
+        margin-top: 2rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary, .btn-secondary {
+        padding: 0.875rem 2rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 1rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 160px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        background: linear-gradient(135deg, var(--primary-dark) 0%, #4338ca 100%);
+        color: white;
+    }
+
+    .btn-primary:disabled {
+        background: var(--medium-gray);
+        color: var(--text-secondary);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: var(--text-secondary);
+        border: 2px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: var(--light-gray);
+        border-color: var(--secondary-color);
+        color: var(--text-primary);
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+</style>
+
+<script>
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(inputId + '-icon');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    function checkPasswordStrength(password) {
+        const strengthFill = document.getElementById('strengthFill');
+        const strengthText = document.getElementById('strengthText');
+        let strength = 0;
+        let text = '';
+        let color = '';
+
+        if (password.length === 0) {
+            text = 'Ingresa una contraseña';
+            color = 'var(--text-secondary)';
+        } else if (password.length < 6) {
+            strength = 25;
+            text = 'Muy débil';
+            color = 'var(--danger-color)';
+        } else if (password.length < 8) {
+            strength = 50;
+            text = 'Débil';
+            color = '#f59e0b';
+        } else {
+            let score = 0;
+            if (/[a-z]/.test(password)) score++;
+            if (/[A-Z]/.test(password)) score++;
+            if (/[0-9]/.test(password)) score++;
+            if (/[^A-Za-z0-9]/.test(password)) score++;
+
+            if (score === 4 && password.length >= 12) {
+                strength = 100;
+                text = 'Muy fuerte';
+                color = 'var(--success-color)';
+            } else if (score >= 3) {
+                strength = 75;
+                text = 'Fuerte';
+                color = 'var(--success-color)';
+            } else {
+                strength = 50;
+                text = 'Regular';
+                color = '#f59e0b';
+            }
         }
 
-        <div class="text-end mt-4">
-            <a href="@Url.Action("MiPerfil")" class="btn btn-secondary me-2">Cancelar</a>
-            <button type="submit" class="btn" style="background-color: #00509e; color: white;">Cambiar Contraseña</button>
-        </div>
-    </form>
-</div>
+        strengthFill.style.width = strength + '%';
+        strengthFill.style.background = color;
+        strengthText.textContent = text;
+        strengthText.style.color = color;
+
+        checkPasswordMatch();
+    }
+
+    function checkPasswordMatch() {
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const matchDiv = document.getElementById('passwordMatch');
+        const submitButton = document.getElementById('submitButton');
+
+        if (confirmPassword.length === 0) {
+            matchDiv.textContent = '';
+            matchDiv.className = 'password-match';
+            submitButton.disabled = true;
+        } else if (newPassword === confirmPassword) {
+            matchDiv.textContent = '✓ Las contraseñas coinciden';
+            matchDiv.className = 'password-match match-success';
+            submitButton.disabled = false;
+        } else {
+            matchDiv.textContent = '✗ Las contraseñas no coinciden';
+            matchDiv.className = 'password-match match-error';
+            submitButton.disabled = true;
+        }
+    }
+
+    // Verificar coincidencia cuando se carga la página
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPassword = document.getElementById('currentPassword');
+        const submitButton = document.getElementById('submitButton');
+        
+        function checkFormValidity() {
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            
+            if (current && newPass && confirm && newPass === confirm && newPass.length >= 6) {
+                submitButton.disabled = false;
+            } else {
+                submitButton.disabled = true;
+            }
+        }
+
+        document.getElementById('currentPassword').addEventListener('input', checkFormValidity);
+        document.getElementById('newPassword').addEventListener('input', checkFormValidity);
+        document.getElementById('confirmPassword').addEventListener('input', checkFormValidity);
+    });
+</script>

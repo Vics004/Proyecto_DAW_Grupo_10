@@ -4,165 +4,573 @@
     var ticket = ViewBag.Ticket;
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 style="color: #001f3f; font-weight: bold;">Detalle del Ticket #@ticket.ticketId</h1>
+<div class="main-content">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Ticket #@ticket.ticketId</h1>
+        <p class="dashboard-subtitle">Detalles completos del ticket y seguimiento de estado</p>
     </div>
 
-    <!-- Card principal con detalles -->
-    <div class="card mb-4">
-        <div class="card-header" style="background-color: #003366; color: white;">
-            <h5 class="mb-0">Información del Ticket</h5>
+    <!-- Información Principal del Ticket -->
+    <div class="tasks-section pending-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Información del Ticket
+            </h2>
+            <div class="task-counter">
+                <span class="priority-badge priority-@ticket.Prioridad.ToLower()">@ticket.Prioridad</span>
+                <span class="status-badge status-@ticket.Estado.ToLower().Replace(" ", "-")">@ticket.Estado</span>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <h6 style="color: #004080; font-weight: bold;">Problema</h6>
-                        <p>@ticket.Problema</p>
-                    </div>
-                    <div class="mb-3">
-                        <h6 style="color: #004080; font-weight: bold;">Categoría</h6>
-                        <p>@ticket.Categoria</p>
-                    </div>
-                    <div class="mb-3">
-                        <h6 style="color: #004080; font-weight: bold;">Descripción</h6>
-                        <p>@ticket.descripcion</p>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <h6 style="color: #004080; font-weight: bold;">Prioridad</h6>
-                        <span class="badge @(ticket.Prioridad == "Urgente" ? "bg-danger" :
-                                          ticket.Prioridad == "Alta" ? "bg-warning text-dark" :
-                                          ticket.Prioridad == "Media" ? "bg-info" : "bg-secondary")">
-                            @ticket.Prioridad
-                        </span>
-                    </div>
-                    <div class="mb-3">
-                        <h6 style="color: #004080; font-weight: bold;">Estado</h6>
-                        <span class="badge @(ticket.Estado == "Finalizado" ? "bg-success" :
-                                          ticket.Estado == "En proceso" ? "bg-primary" :
-                                          ticket.Estado == "Cancelado" ? "bg-danger" : "bg-secondary")">
-                            @ticket.Estado
-                        </span>
-                    </div>
-                    <div class="mb-3">
-                        <h6 style="color: #004080; font-weight: bold;">Fecha Apertura</h6>
-                        <p>@ticket.fechaApertura.ToString("dd/MM/yyyy HH:mm")</p>
-                    </div>
-                    @if (ticket.fechaCierre != null)
-                    {
-                        <div class="mb-3">
-                            <h6 style="color: #004080; font-weight: bold;">Fecha Cierre</h6>
-                            <p>@ticket.fechaCierre?.ToString("dd/MM/yyyy HH:mm")</p>
+        
+        <div class="tasks-grid">
+            <div class="task-card pending-card" style="grid-column: 1 / -1; max-width: none;">
+                <div class="ticket-info-grid">
+                    <div class="info-group">
+                        <div class="info-item">
+                            <label class="info-label">Problema</label>
+                            <p class="info-value">@ticket.Problema</p>
                         </div>
-                    }
+                        <div class="info-item">
+                            <label class="info-label">Categoría</label>
+                            <p class="info-value">@ticket.Categoria</p>
+                        </div>
+                        <div class="info-item">
+                            <label class="info-label">Descripción</label>
+                            <p class="info-value">@ticket.descripcion</p>
+                        </div>
+                    </div>
+                    <div class="info-group">
+                        <div class="info-item">
+                            <label class="info-label">Fecha de Apertura</label>
+                            <p class="info-value">@ticket.fechaApertura.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                        @if (ticket.fechaCierre != null)
+                        {
+                            <div class="info-item">
+                                <label class="info-label">Fecha de Cierre</label>
+                                <p class="info-value">@ticket.fechaCierre?.ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+                        }
+                        <div class="info-item">
+                            <label class="info-label">Tiempo Transcurrido</label>
+                            <p class="info-value">
+                                @{
+                                    var tiempoTranscurrido = (ticket.fechaCierre ?? DateTime.Now) - ticket.fechaApertura;
+                                    var dias = tiempoTranscurrido.Days;
+                                    var horas = tiempoTranscurrido.Hours;
+                                }
+                                @if (dias > 0) { <text>@dias días, </text> }@horas horas
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Archivos Adjuntos -->
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #003366; color: white;">
-            <h5 class="mb-0">Archivos Adjuntos</h5>
+    <div class="tasks-section stats-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                </svg>
+                Archivos Adjuntos
+            </h2>
             @if (ticket.Estado != "Finalizado" && ticket.Estado != "Cancelado")
             {
-                <button type="button" class="btn btn-sm" style="background-color: #00509e; color: white;"
-                        onclick="document.getElementById('fileInput').click()">
-                    <i class="fas fa-upload"></i> Subir archivo
-                </button>
-                <input type="file" id="fileInput" style="display: none;" onchange="subirArchivo(this)" />
+                <div class="task-counter">
+                    <button type="button" class="btn-view" onclick="document.getElementById('fileInput').click()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        Subir archivo
+                    </button>
+                    <input type="file" id="fileInput" style="display: none;" onchange="subirArchivo(this)" />
+                </div>
             }
         </div>
-        <div class="card-body">
+        
+        <div class="tasks-grid">
             @if (ViewBag.Archivos != null && ViewBag.Archivos.Count > 0)
             {
-                <div class="list-group">
-                    @foreach (var archivo in ViewBag.Archivos)
-                    {
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="fas fa-file me-2"></i>
-                                    @archivo.nombreArchivo
+                @foreach (var archivo in ViewBag.Archivos)
+                {
+                    <div class="task-card">
+                        <div class="task-content">
+                            <div class="file-item">
+                                <div class="file-icon">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
                                 </div>
-                                <small class="text-muted">@archivo.fechaCarga.ToString("dd/MM/yyyy HH:mm")</small>
+                                <div class="file-info">
+                                    <h3 class="file-name">@archivo.nombreArchivo</h3>
+                                    <p class="file-date">@archivo.fechaCarga.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
                             </div>
                         </div>
-                    }
-                </div>
+                    </div>
+                }
             }
             else
             {
-                <p>No hay archivos adjuntos.</p>
+                <div class="task-card" style="grid-column: 1 / -1;">
+                    <div class="task-content">
+                        <div class="empty-state">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                            <p>No hay archivos adjuntos</p>
+                        </div>
+                    </div>
+                </div>
             }
         </div>
     </div>
 
     <!-- Comentarios -->
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #003366; color: white;">
-            <h5 class="mb-0">Comentarios</h5>
+    <div class="tasks-section completed-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                Comentarios
+            </h2>
             @if (ticket.Estado != "Finalizado" && ticket.Estado != "Cancelado")
             {
-                <button type="button" class="btn btn-sm" style="background-color: #00509e; color: white;"
-                        onclick="toggleComentario()">
-                    <i class="fas fa-comment"></i> Agregar comentario
-                </button>
+                <div class="task-counter">
+                    <button type="button" class="btn-view" onclick="toggleComentario()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Agregar comentario
+                    </button>
+                </div>
             }
         </div>
-        <div class="card-body">
-            <!-- Formulario para nuevo comentario (oculto inicialmente) -->
-            <div id="formComentario" style="display: none;" class="mb-4">
-                <form id="comentarioForm">
-                    <input type="hidden" name="ticketId" value="@ticket.ticketId" />
-                    <div class="mb-3">
-                        <textarea name="texto" class="form-control" rows="3" placeholder="Escribe tu comentario..." required></textarea>
-                    </div>
-                    <button type="submit" class="btn" style="background-color: #00509e; color: white;">Enviar comentario</button>
-                </form>
-            </div>
-
-            <!-- Lista de comentarios -->
-            <div class="timeline">
-                @if (ViewBag.Comentarios != null && ViewBag.Comentarios.Count > 0)
-                {
-                    foreach (var comentario in ViewBag.Comentarios)
-                    {
-                        <div class="timeline-item @(comentario.usuarioId == ViewBag.UsuarioId ? "timeline-item-right" : "")">
-                            <div class="timeline-point"></div>
-                            <div class="timeline-content">
-                                <div class="timeline-header">
-                                    <span class="timeline-user">@comentario.usuarioNombre</span>
-                                    <span class="timeline-date">@comentario.fecha.ToString("dd/MM/yyyy HH:mm")</span>
-                                </div>
-                                <div class="timeline-body">
-                                    <p>@comentario.texto</p>
-                                </div>
+        
+        <div class="tasks-grid">
+            <div class="task-card" style="grid-column: 1 / -1; max-width: none;">
+                <div class="task-content">
+                    <!-- Formulario para nuevo comentario -->
+                    <div id="formComentario" class="comment-form" style="display: none;">
+                        <form id="comentarioForm">
+                            <input type="hidden" name="ticketId" value="@ticket.ticketId" />
+                            <div class="form-group">
+                                <label class="form-label">Nuevo comentario</label>
+                                <textarea name="texto" class="form-control form-textarea" rows="4" 
+                                          placeholder="Escribe tu comentario..." required></textarea>
                             </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <p>No hay comentarios aún.</p>
-                }
+                            <div class="form-actions">
+                                <button type="button" class="btn-secondary" onclick="toggleComentario()">Cancelar</button>
+                                <button type="submit" class="btn-view">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                    </svg>
+                                    Enviar comentario
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Timeline de comentarios -->
+                    <div class="comments-timeline">
+                        @if (ViewBag.Comentarios != null && ViewBag.Comentarios.Count > 0)
+                        {
+                            @foreach (var comentario in ViewBag.Comentarios)
+                            {
+                                <div class="timeline-item @(comentario.usuarioId == ViewBag.UsuarioId ? "timeline-item-own" : "timeline-item-other")">
+                                    <div class="timeline-avatar">
+                                        <div class="avatar">
+                                            @comentario.usuarioNombre.Substring(0, 1).ToUpper()
+                                        </div>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <div class="comment-header">
+                                            <span class="comment-author">@comentario.usuarioNombre</span>
+                                            <span class="comment-date">@comentario.fecha.ToString("dd/MM/yyyy HH:mm")</span>
+                                        </div>
+                                        <div class="comment-body">
+                                            <p>@comentario.texto</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                                <p>No hay comentarios aún</p>
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+    /* Estilos específicos para la página de detalle del ticket */
+    .ticket-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .info-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .info-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0;
+    }
+
+    .info-value {
+        font-size: 1rem;
+        color: var(--text-primary);
+        margin: 0;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
+    /* Badges para prioridad y estado */
+    .priority-badge, .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-left: 0.5rem;
+    }
+
+    .priority-urgente {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
+    .priority-alta {
+        background-color: #fed7d7;
+        color: #e53e3e;
+    }
+
+    .priority-media {
+        background-color: #fef3c7;
+        color: #d97706;
+    }
+
+    .priority-baja {
+        background-color: #e0e7ff;
+        color: #6366f1;
+    }
+
+    .status-finalizado {
+        background-color: #d1fae5;
+        color: #059669;
+    }
+
+    .status-en-proceso {
+        background-color: #fef3c7;
+        color: #d97706;
+    }
+
+    .status-cancelado {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
+    .status-creado, .status-asignado {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+
+    /* Archivos */
+    .file-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .file-icon {
+        flex-shrink: 0;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--light-gray);
+        border-radius: 0.75rem;
+        color: var(--primary-color);
+    }
+
+    .file-info {
+        flex: 1;
+    }
+
+    .file-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 0.25rem 0;
+    }
+
+    .file-date {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    /* Comentarios */
+    .comment-form {
+        background: var(--light-gray);
+        padding: 1.5rem;
+        border-radius: 1rem;
+        border: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control {
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background-color: white;
+        width: 100%;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-textarea {
+        min-height: 120px;
+        resize: vertical;
+        font-family: inherit;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .btn-secondary {
+        background: var(--medium-gray);
+        color: var(--text-secondary);
+        border: 2px solid var(--border-color);
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-secondary:hover {
+        background: var(--border-color);
+        color: var(--text-primary);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* Timeline de comentarios */
+    .comments-timeline {
+        position: relative;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 1rem;
+    }
+
+    .timeline-item-own {
+        flex-direction: row-reverse;
+    }
+
+    .timeline-avatar {
+        flex-shrink: 0;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .timeline-item-own .avatar {
+        background: var(--success-color);
+    }
+
+    .timeline-content {
+        flex: 1;
+        max-width: 70%;
+    }
+
+    .timeline-item-own .timeline-content {
+        text-align: right;
+    }
+
+    .comment-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .timeline-item-own .comment-header {
+        justify-content: flex-end;
+    }
+
+    .comment-author {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+    }
+
+    .comment-date {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .comment-body {
+        background: white;
+        padding: 1rem 1.25rem;
+        border-radius: 1rem;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        position: relative;
+    }
+
+    .timeline-item-own .comment-body {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .comment-body::before {
+        content: '';
+        position: absolute;
+        top: 1rem;
+        left: -8px;
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-right: 8px solid white;
+    }
+
+    .timeline-item-own .comment-body::before {
+        left: auto;
+        right: -8px;
+        border-right: none;
+        border-left: 8px solid var(--primary-color);
+    }
+
+    .comment-body p {
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* Estado vacío */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 2rem;
+        text-align: center;
+        color: var(--text-secondary);
+    }
+
+    .empty-state svg {
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 1rem;
+    }
+</style>
+
 @section Scripts {
     <script>
         function toggleComentario() {
             const form = document.getElementById("formComentario");
-            form.style.display = form.style.display === "none" ? "block" : "none";
+            const isVisible = form.style.display !== "none";
+            
+            if (isVisible) {
+                form.style.display = "none";
+            } else {
+                form.style.display = "block";
+                // Enfocar el textarea cuando se muestra el formulario
+                const textarea = form.querySelector('textarea');
+                setTimeout(() => textarea.focus(), 100);
+            }
         }
 
         function subirArchivo(input) {
             if (input.files && input.files[0]) {
+                // Mostrar indicador de carga
+                const originalText = document.querySelector('.btn-view').innerHTML;
+                const uploadBtn = document.querySelector('.btn-view');
+                uploadBtn.innerHTML = `
+                    <svg class="animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Subiendo...
+                `;
+                uploadBtn.disabled = true;
+
                 const formData = new FormData();
                 formData.append('ticketId', '@ticket.ticketId');
                 formData.append('archivo', input.files[0]);
@@ -172,14 +580,39 @@
                     body: formData
                 }).then(response => {
                     if (response.ok) {
-                        location.reload();
+                        // Mostrar éxito antes de recargar
+                        uploadBtn.innerHTML = `
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            ¡Subido!
+                        `;
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        uploadBtn.innerHTML = originalText;
+                        uploadBtn.disabled = false;
+                        alert('Error al subir el archivo');
                     }
+                }).catch(error => {
+                    uploadBtn.innerHTML = originalText;
+                    uploadBtn.disabled = false;
+                    alert('Error al subir el archivo');
                 });
             }
         }
 
         document.getElementById("comentarioForm")?.addEventListener("submit", function(e) {
             e.preventDefault();
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <svg class="animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Enviando...
+            `;
 
             const formData = new FormData(this);
 
@@ -188,66 +621,23 @@
                 body: formData
             }).then(response => {
                 if (response.ok) {
-                    location.reload();
+                    submitBtn.innerHTML = `
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        ¡Enviado!
+                    `;
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    alert('Error al enviar el comentario');
                 }
+            }).catch(error => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                alert('Error al enviar el comentario');
             });
         });
     </script>
-
-    <style>
-        .timeline {
-            position: relative;
-            padding-left: 1rem;
-        }
-
-        .timeline-item {
-            position: relative;
-            padding-bottom: 1.5rem;
-            padding-left: 2rem;
-        }
-
-        .timeline-item-right {
-            margin-left: auto;
-            padding-left: 0;
-            padding-right: 2rem;
-            text-align: right;
-        }
-
-        .timeline-point {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 1rem;
-            height: 1rem;
-            background-color: #00509e;
-            border-radius: 50%;
-        }
-
-        .timeline-item-right .timeline-point {
-            left: auto;
-            right: 0;
-        }
-
-        .timeline-content {
-            background-color: #f8f9fa;
-            padding: 1rem;
-            border-radius: 0.5rem;
-        }
-
-        .timeline-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .timeline-user {
-            font-weight: bold;
-            color: #00509e;
-        }
-
-        .timeline-date {
-            color: #6c757d;
-        }
-    </style>
 }
