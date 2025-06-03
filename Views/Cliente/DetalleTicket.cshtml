@@ -111,10 +111,16 @@
                                     <h3 class="file-name">@archivo.nombreArchivo</h3>
                                     <p class="file-date">@archivo.fechaCarga.ToString("dd/MM/yyyy HH:mm")</p>
                                 </div>
+                                <div class="file-actions">
+                                    <a asp-controller="Cliente" asp-action="DescargarArchivo" asp-route-id="@archivo.archivoId" class="btn btn-primary">
+                                        Descargar
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 }
+
             }
             else
             {
@@ -191,6 +197,21 @@
                     </div>
 
                 </div>
+                <div class="section-header">
+                    <h2 class="section-title">
+                    </h2>
+                    @if (ticket.Estado != "Finalizado" && ticket.Estado != "Cancelado")
+                    {
+                        <div class="task-counter">
+                            <button type="button" class="btn-view" onclick="toggleComentario()">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Agregar comentario
+                            </button>
+                        </div>
+                    }
+                </div>
                 <!-- Formulario para nuevo comentario -->
                 <div id="formComentario" class="comment-form" style="display: none;">
                     <form id="comentarioForm">
@@ -211,21 +232,7 @@
                         </div>
                     </form>
                 </div>
-                <div class="section-header">
-                    <h2 class="section-title">
-                    </h2>
-                    @if (ticket.Estado != "Finalizado" && ticket.Estado != "Cancelado")
-                    {
-                        <div class="task-counter">
-                            <button type="button" class="btn-view" onclick="toggleComentario()">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                </svg>
-                                Agregar comentario
-                            </button>
-                        </div>
-                    }
-                </div>
+                
 
             </div>
 
@@ -728,6 +735,8 @@
                 setTimeout(() => textarea.focus(), 100);
             }
         }
+
+
 
         function subirArchivo(input) {
             if (input.files && input.files[0]) {

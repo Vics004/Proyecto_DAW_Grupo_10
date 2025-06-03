@@ -51,11 +51,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             // Obtener ID del cliente de la sesión
             var clienteId = HttpContext.Session.GetInt32("usuarioId");
 
-            if (clienteId == null)
-            {
-                return RedirectToAction("Autenticar", "Login");
-            }
-
             // Obtener estadísticas de tickets
             var ticketsAbiertos = (from t in _context.ticket
                                    join e in _context.estado on t.estadoId equals e.estadoId
@@ -134,7 +129,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                     // Asignar datos automáticos
                     nuevoTicket.usuarioCreadorId = HttpContext.Session.GetInt32("usuarioId") ?? 0;
                     nuevoTicket.fechaApertura = DateTime.Now;
-                    nuevoTicket.fechaModificacion = DateTime.Now;
                     nuevoTicket.estadoId = 1; // Estado "Creado"
 
                     // Guardar el ticket
@@ -181,11 +175,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         {
             // Obtener ID del cliente de la sesión
             var clienteId = HttpContext.Session.GetInt32("usuarioId");
-
-            if (clienteId == null)
-            {
-                return RedirectToAction("Autenticar", "Login");
-            }
 
             // Obtener datos para los filtros
             var estados = _context.estado.OrderBy(e => e.nombre).ToList();
@@ -246,7 +235,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         public IActionResult DetalleTicket(int id)
         {
             var clienteId = HttpContext.Session.GetInt32("usuarioId");
-            if (clienteId == null) return RedirectToAction("Autenticar", "Login");
 
             // Obtener información del ticket
             var ticket = (from t in _context.ticket
@@ -327,7 +315,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         public IActionResult AgregarComentario(int ticketId, string texto)
         {
             var clienteId = HttpContext.Session.GetInt32("usuarioId");
-            if (clienteId == null) return Unauthorized();
 
             var comentario = new comentario
             {
@@ -348,25 +335,74 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         public async Task<IActionResult> SubirArchivo(int ticketId, IFormFile archivo)
         {
             var clienteId = HttpContext.Session.GetInt32("usuarioId");
-            if (clienteId == null) return Unauthorized();
 
             if (archivo != null && archivo.Length > 0)
             {
+                // ✅ 1. Carpeta donde se guardarán los archivos
+                var rutaCarpeta = Path.Combine(Directory.GetCurrentDirectory(), "ArchivosAdjuntos");
+                if (!Directory.Exists(rutaCarpeta))
+                {
+                    Directory.CreateDirectory(rutaCarpeta);
+                }
+
+                // ✅ 2. Generar nombre único para el archivo
+                var nombreUnico = Guid.NewGuid().ToString() + Path.GetExtension(archivo.FileName);
+
+                // ✅ 3. Ruta completa en disco
+                var rutaCompleta = Path.Combine(rutaCarpeta, nombreUnico);
+
+                // ✅ 4. Guardar el archivo físicamente
+                using (var stream = new FileStream(rutaCompleta, FileMode.Create))
+                {
+                    await archivo.CopyToAsync(stream);
+                }
+
+                // ✅ 5. Guardar la referencia en la base de datos
                 var nuevoArchivo = new archivosAdjuntos
                 {
                     ticketId = ticketId,
                     usuarioId = clienteId.Value,
-                    nombreArchivo = archivo.FileName,
-                    tipoArchivo = archivo.ContentType,
+                    nombreArchivo = archivo.FileName,         // Nombre original del archivo
+                    tipoArchivo = archivo.ContentType,       // Tipo MIME
+                    rutaArchivo = nombreUnico,               // Guardamos solo el nombre generado
                     fechaCarga = DateTime.Now
                 };
 
                 _context.archivosAdjuntos.Add(nuevoArchivo);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                return Ok("Archivo cargado y guardado exitosamente.");
             }
 
-            return Ok();
+            return BadRequest("No se seleccionó ningún archivo.");
         }
+
+        public IActionResult DescargarArchivo(int id)
+        {
+            // 1. Buscar el archivo en la base de datos
+            var archivo = _context.archivosAdjuntos.FirstOrDefault(a => a.archivoId == id);
+            if (archivo == null)
+            {
+                return NotFound();
+            }
+
+            // 2. Construir la ruta completa del archivo en disco
+            var rutaCarpeta = Path.Combine(Directory.GetCurrentDirectory(), "ArchivosAdjuntos");
+            var rutaCompleta = Path.Combine(rutaCarpeta, archivo.rutaArchivo);
+
+            // 3. Verificar si el archivo existe físicamente
+            if (!System.IO.File.Exists(rutaCompleta))
+            {
+                return NotFound("El archivo no existe en el servidor.");
+            }
+
+            // 4. Leer los bytes del archivo físico
+            var fileBytes = System.IO.File.ReadAllBytes(rutaCompleta);
+
+            // 5. Retornar el archivo como descarga
+            return File(fileBytes, archivo.tipoArchivo, archivo.nombreArchivo);
+        }
+
 
         // Añade estas acciones al final de tu ClienteController
 
@@ -374,7 +410,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         public IActionResult MiPerfil()
         {
             var clienteId = HttpContext.Session.GetInt32("usuarioId");
-            if (clienteId == null) return RedirectToAction("Autenticar", "Login");
 
             var usuario = _context.usuario
                 .Where(u => u.usuarioId == clienteId)
@@ -401,7 +436,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         public IActionResult EditarPerfil()
         {
             var clienteId = HttpContext.Session.GetInt32("usuarioId");
-            if (clienteId == null) return RedirectToAction("Autenticar", "Login");
 
             var usuario = _context.usuario.Find(clienteId);
             if (usuario == null) return NotFound();
@@ -418,10 +452,8 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                 try
                 {
                     var clienteId = HttpContext.Session.GetInt32("usuarioId");
-                    if (clienteId == null) return RedirectToAction("Autenticar", "Login");
 
                     var usuario = _context.usuario.Find(clienteId);
-                    if (usuario == null) return NotFound();
 
                     // Actualizar solo los campos editables
                     usuario.nombre = model.nombre;
@@ -467,7 +499,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             }
 
             var clienteId = HttpContext.Session.GetInt32("usuarioId");
-            if (clienteId == null) return RedirectToAction("Autenticar", "Login");
 
             var usuario = _context.usuario.Find(clienteId);
             if (usuario == null) return NotFound();
