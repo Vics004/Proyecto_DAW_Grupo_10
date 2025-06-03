@@ -1,0 +1,57 @@
+﻿@{
+    ViewBag.Title = "Agregar nuevo problema";
+}
+
+<h2 style="margin-bottom:20px" class="dashboard-title">@ViewBag.Title</h2>
+
+<form asp-action="CrearProblema" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="busqueda" value="@ViewBag.Busqueda" />
+
+    <div class="form-group d-flex align-items-center mb-3">
+        <label class="me-3 mb-0 form-label-custom">Categoría:</label>
+        <select name="categoriaId" class="form-control form-text-custom" required>
+            @foreach (var categoria in ViewBag.Categorias)
+            {
+                <option value="@categoria.categoriaId">@categoria.nombre</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group d-flex align-items-center mb-3">
+        <label class="me-3 mb-0 form-label-custom">Problema:</label>
+        <input type="text" name="nombre" class="form-control form-text-custom"
+               placeholder="Ingrese el nombre del problema" required />
+    </div>
+
+
+
+    <button type="submit" class="btn btn-primary" style="margin-top: 30px">Guardar</button>
+    <a href="@Url.Action("ListadoProblemas")" class="btn btn-secondary" style="margin-top: 30px">Cancelar</a>
+</form>
+
+<style>
+    .dashboard-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem;
+    }
+
+    .form-label-custom {
+        width: 100px;
+        font-weight: 600;
+        color: #495057;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-text-custom {
+        max-width: 300px;
+        font-weight: 600;
+        color: #495057;
+        font-size: 14px;
+        letter-spacing: 0.5px;
+    }
+</style>
