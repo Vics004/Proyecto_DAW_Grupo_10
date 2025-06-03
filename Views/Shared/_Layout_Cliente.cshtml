@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@{
+    var rol = Context.Session.GetString("rolnombre");
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -32,6 +36,23 @@
                     <i class="fas fa-user me-2"></i>Mi Perfil
                 </a>
             </li>
+			@if (rol == "Tecnico")
+			{
+				<li class="nav-item">
+					<a class="nav-link" asp-area="" asp-controller="Tecnico" asp-action="Dashboard">
+						<i class="fas fa-clock me-2"></i>Regresar panel Tecnico
+					</a>
+				</li>
+			}
+            @if (rol == "Administrador")
+            {
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Administrador" asp-action="Dashboard">
+                        <i class="fas fa-clock me-2"></i>Regresar panel Admin
+                    </a>
+                </li>
+            }
+
         </ul>
         
         <a class="logout-link" asp-area="" asp-controller="login" asp-action="Logout">

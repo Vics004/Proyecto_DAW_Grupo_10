@@ -1,6 +1,19 @@
 ﻿@model Proyecto_DAW_Grupo_10.Models.usuario
+@using Microsoft.AspNetCore.Http
 @{
-    Layout = "_Layout_Cliente";
+    var rol = Context.Session.GetString("rolnombre");
+    if (rol == "Cliente" || rol == "Empleado")
+    {
+        Layout = "_Layout_Cliente";
+    }
+    else if (rol == "Tecnico")
+    {
+        Layout = "_Layout_Tecnico";
+    }
+    else if (rol == "Administrador")
+    {
+        Layout = "_Layout";
+    }
     ViewData["Title"] = "Editar Perfil";
 }
 

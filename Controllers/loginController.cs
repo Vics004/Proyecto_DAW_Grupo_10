@@ -91,6 +91,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                 HttpContext.Session.SetString("telefono", usuario.usuario.telefono);
                 HttpContext.Session.SetString("correo", usuario.usuario.correo);
                 HttpContext.Session.SetInt32("rolId", usuario.rolId);
+                HttpContext.Session.SetString("rolnombre", usuario.rolNombre);
 
                 return RedirectToAction("Index", "login");
             }
