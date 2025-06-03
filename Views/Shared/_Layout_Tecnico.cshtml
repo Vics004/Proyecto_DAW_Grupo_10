@@ -7,58 +7,79 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Proyecto_DAW_Grupo_10.styles.css" asp-append-version="true" />
-    <style>
-        .custom-footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            height: 60px;
-            line-height: 60px;
-            background-color: #f5f5f5;
-        }
+    <link rel="stylesheet" href="~/css/Layoutstyle.css" />
 
-        .main-content {
-            margin-bottom: 80px;
-        }
-    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="login" asp-action="Index">Técnico</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <a class="nav-link" asp-area="" asp-controller="login" asp-action="Logout" style="color: blue;">
-                        <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
-                    </a>
-                </div>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <a class="nav-link" asp-area="" asp-controller="Tecnico" asp-action="Dashboard" style="color: blue;">
-                        <i class="fas fa-sign-out-alt me-1"></i> Dahsboard
-                    </a>
-                </div>
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+
+    <nav class="sidebar" id="sidebar">
+        <a class="navbar-brand" asp-area="" asp-controller="login" asp-action="Index">Tecnico</a>
+
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Tecnico" asp-action="Dashboard">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Tecnico" asp-action="MisTareas">
+                    <i class="fas fa-ticket-alt me-2"></i>Mis Tareas
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Tecnico" asp-action="HistorialTareas">
+                    <i class="fas fa-user me-2"></i>Historial de Tareas
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" asp-area="" asp-controller="Tecnico" asp-action="MisTickets">
+                    <i class="fas fa-user me-2"></i>Mis Tickets
+                </a>
+            </li>
+        </ul>
+
+        <a class="logout-link" asp-area="" asp-controller="login" asp-action="Logout">
+            <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
+        </a>
+    </nav>
+
+    <div class="main-wrapper">
+        <div class="container-fluid main-content">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+
+        <footer class="border-top footer text-muted custom-footer">
+            <div class="container">
+                &copy; 2025 - Proyecto_DAW_Grupo_10 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
             </div>
-        </nav>
-    </header>
-    <div class="container main-content">
-        
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+        </footer>
     </div>
 
-    <footer class="border-top footer text-muted custom-footer">
-        <div class="container">
-            &copy; 2025 - Proyecto_DAW_Grupo_10 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('show');
+        }
+
+        // Cerrar sidebar al hacer clic fuera en móvil
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-toggle');
+
+            if (window.innerWidth <= 768 &&
+                !sidebar.contains(event.target) &&
+                !toggle.contains(event.target) &&
+                sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
+            }
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
