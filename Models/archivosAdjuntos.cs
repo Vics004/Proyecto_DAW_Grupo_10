@@ -13,5 +13,9 @@ namespace Proyecto_DAW_Grupo_10.Models
         public string rutaArchivo { get; set; }
         public DateTime fechaCarga { get; set; }
         public int ticketId { get; set; }
+        public tarea? tarea { get; set; }
+        public usuario? usuario { get; set; }
+        public ticket? ticket { get; set; }
+
     }
 }

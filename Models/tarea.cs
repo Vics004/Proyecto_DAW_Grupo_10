@@ -11,5 +11,10 @@ namespace Proyecto_DAW_Grupo_10.Models
         public int estadoId { get; set; }
         public string descripcion { get; set; }
         public DateTime fecha { get; set; }
+
+        public ticket? ticket { get; set; }
+        public usuario? usuarioAsignado { get; set; }
+        public estado? estado { get; set; }
+
     }
 }
