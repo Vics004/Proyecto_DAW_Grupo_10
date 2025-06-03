@@ -132,71 +132,44 @@
         </div>
     </div>
 
-    <!-- Comentarios -->
+    <!-- Comentarios y Cambios de Estados-->
     <div class="tasks-section completed-section">
         <div class="section-header">
             <h2 class="section-title">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                 </svg>
-                Comentarios
+                Actividad del Ticket
             </h2>
-            @if (ticket.Estado != "Finalizado" && ticket.Estado != "Cancelado")
-            {
-                <div class="task-counter">
-                    <button type="button" class="btn-view" onclick="toggleComentario()">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        Agregar comentario
-                    </button>
-                </div>
-            }
         </div>
-        
+
         <div class="tasks-grid">
             <div class="task-card" style="grid-column: 1 / -1; max-width: none;">
                 <div class="task-content">
-                    <!-- Formulario para nuevo comentario -->
-                    <div id="formComentario" class="comment-form" style="display: none;">
-                        <form id="comentarioForm">
-                            <input type="hidden" name="ticketId" value="@ticket.ticketId" />
-                            <div class="form-group">
-                                <label class="form-label">Nuevo comentario</label>
-                                <textarea name="texto" class="form-control form-textarea" rows="4" 
-                                          placeholder="Escribe tu comentario..." required></textarea>
-                            </div>
-                            <div class="form-actions">
-                                <button type="button" class="btn-secondary" onclick="toggleComentario()">Cancelar</button>
-                                <button type="submit" class="btn-view">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                                    </svg>
-                                    Enviar comentario
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                    
 
-                    <!-- Timeline de comentarios -->
+                    <!-- Timeline de comentarios y actividades -->
                     <div class="comments-timeline">
-                        @if (ViewBag.Comentarios != null && ViewBag.Comentarios.Count > 0)
+                        @if (ViewBag.Actividad != null && ViewBag.Actividad.Count > 0)
                         {
-                            @foreach (var comentario in ViewBag.Comentarios)
+                            @foreach (var actividad in ViewBag.Actividad)
                             {
-                                <div class="timeline-item @(comentario.usuarioId == ViewBag.UsuarioId ? "timeline-item-own" : "timeline-item-other")">
+                                <div class="timeline-item @(actividad.UsuarioId == ViewBag.UsuarioId ? "timeline-item-own" : "timeline-item-other")">
                                     <div class="timeline-avatar">
                                         <div class="avatar">
-                                            @comentario.usuarioNombre.Substring(0, 1).ToUpper()
+                                            @actividad.Usuario.Substring(0, 1).ToUpper()
                                         </div>
                                     </div>
                                     <div class="timeline-content">
                                         <div class="comment-header">
-                                            <span class="comment-author">@comentario.usuarioNombre</span>
-                                            <span class="comment-date">@comentario.fecha.ToString("dd/MM/yyyy HH:mm")</span>
+                                            <span class="comment-author">@actividad.Usuario</span>
+                                            <span class="comment-date">@actividad.Fecha.ToString("dd/MM/yyyy HH:mm")</span>
+                                            <span class="activity-type @(actividad.Tipo == "Comentario" ? "comment-type" : "status-type")">
+                                                @actividad.Tipo
+                                            </span>
                                         </div>
                                         <div class="comment-body">
-                                            <p>@comentario.texto</p>
+                                            <p>@actividad.Detalle</p>
                                         </div>
                                     </div>
                                 </div>
@@ -208,18 +181,216 @@
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                                 </svg>
-                                <p>No hay comentarios aún</p>
+                                <p>No hay actividad aún</p>
                             </div>
                         }
+                        
+                        
+                        
+
                     </div>
+
                 </div>
+                <!-- Formulario para nuevo comentario -->
+                <div id="formComentario" class="comment-form" style="display: none;">
+                    <form id="comentarioForm">
+                        <input type="hidden" name="ticketId" value="@ticket.ticketId" />
+                        <div class="form-group">
+                            <label class="form-label">Nuevo comentario</label>
+                            <textarea name="texto" class="form-control form-textarea" rows="4"
+                                      placeholder="Escribe tu comentario..." required></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="toggleComentario()">Cancelar</button>
+                            <button type="submit" class="btn-view">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                </svg>
+                                Enviar comentario
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="section-header">
+                    <h2 class="section-title">
+                    </h2>
+                    @if (ticket.Estado != "Finalizado" && ticket.Estado != "Cancelado")
+                    {
+                        <div class="task-counter">
+                            <button type="button" class="btn-view" onclick="toggleComentario()">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Agregar comentario
+                            </button>
+                        </div>
+                    }
+                </div>
+
             </div>
+
+            
+            
         </div>
     </div>
 </div>
 
 <style>
     /* Estilos específicos para la página de detalle del ticket */
+    /* Estilos para la línea de tiempo de actividad */
+    .activity-timeline {
+        position: relative;
+        padding: 0 1rem;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+        display: flex;
+    }
+
+    .timeline-item-left {
+        justify-content: flex-start;
+        text-align: left;
+    }
+
+    .timeline-item-right {
+        justify-content: flex-end;
+        text-align: right;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        top: 0;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .timeline-item-left .timeline-marker {
+        left: -1rem;
+    }
+
+    .timeline-item-right .timeline-marker {
+        right: -1rem;
+    }
+
+    .marker-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+    }
+
+        .marker-icon svg {
+            width: 0.75rem;
+            height: 0.75rem;
+        }
+
+    .comment-marker {
+        background: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+    .status-marker {
+        background: var(--success-light);
+        color: var(--success-color);
+    }
+
+    .timeline-content {
+        max-width: 70%;
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+    }
+
+    .timeline-item-right .timeline-content {
+        background: var(--primary-light);
+        color: var(--text-primary);
+    }
+
+    .activity-header {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .timeline-item-right .activity-header {
+        justify-content: flex-end;
+    }
+
+    .activity-user {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+    }
+
+    .activity-date {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .activity-type {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .comment-type {
+        background: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+    .status-type {
+        background: var(--success-light);
+        color: var(--success-color);
+    }
+
+    .timeline-item-right .activity-type {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .activity-body p {
+        margin: 0;
+        line-height: 1.5;
+        color: var(--text-primary);
+    }
+
+    /* Flechas de los globos de diálogo */
+    .timeline-content::after {
+        content: '';
+        position: absolute;
+        top: 1rem;
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+    }
+
+    .timeline-item-left .timeline-content::after {
+        left: -8px;
+        border-right: 8px solid white;
+    }
+
+    .timeline-item-right .timeline-content::after {
+        right: -8px;
+        border-left: 8px solid var(--primary-light);
+    }
+
+
     .ticket-info-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
