@@ -63,52 +63,7 @@
                     </div>
                 </div>
 
-                <!-- Columna Derecha - Información de Solo Lectura -->
-                <div class="col-lg-6">
-                    <div class="profile-section readonly-section">
-                        <h3 class="profile-section-title">
-                            <i class="fas fa-lock" style="color: var(--secondary-color); margin-right: 0.5rem;"></i>
-                            Información de la Empresa
-                        </h3>
-                        
-                        <div class="profile-field">
-                            <label asp-for="empresa" class="profile-label">
-                                <i class="fas fa-building" style="margin-right: 0.5rem;"></i>
-                                Empresa
-                            </label>
-                            <div class="readonly-field">
-                                <input asp-for="empresa" class="form-control profile-input readonly-input" readonly />
-                                <i class="fas fa-lock readonly-icon"></i>
-                            </div>
-                            <span asp-validation-for="empresa" class="validation-error"></span>
-                        </div>
 
-                        <div class="profile-field">
-                            <label asp-for="contactoPrincipal" class="profile-label">
-                                <i class="fas fa-user-tie" style="margin-right: 0.5rem;"></i>
-                                Contacto Principal
-                            </label>
-                            <div class="readonly-field">
-                                <input asp-for="contactoPrincipal" class="form-control profile-input readonly-input" readonly />
-                                <i class="fas fa-lock readonly-icon"></i>
-                            </div>
-                            <span asp-validation-for="contactoPrincipal" class="validation-error"></span>
-                        </div>
-
-                        <div class="profile-field">
-                            <label asp-for="detalleContacto" class="profile-label">
-                                <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
-                                Detalle del Contacto
-                            </label>
-                            <div class="readonly-field">
-                                <textarea asp-for="detalleContacto" class="form-control profile-input readonly-input" rows="4" readonly></textarea>
-                                <i class="fas fa-lock readonly-icon"></i>
-                            </div>
-                            <span asp-validation-for="detalleContacto" class="validation-error"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Botones de Acción -->
             <div class="profile-actions">

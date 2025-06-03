@@ -47,6 +47,10 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                     ViewBag.Layout = "_Layout_Cliente";
                     ViewData["tipoUsuario"] = "Cliente";
                     break;
+                case "Empleado":
+                    ViewBag.Layout = "_Layout_Cliente";
+                    ViewData["tipoUsuario"] = "Empleado";
+                    break;
                 case "Tecnico":
                     ViewBag.Layout = "_Layout_Tecnico";
                     ViewData["tipoUsuario"] = "Tecnico";
@@ -74,7 +78,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                  join r in _TicketsDbContexto.rol on u.rolId equals r.rolId
                                  where u.nombre == txtUsuario
                                  && u.contrasenia == txtClave
-                                 && (r.nombre == "Cliente" || r.nombre == "Tecnico" || r.nombre == "Administrador")
+                                 && (r.nombre == "Cliente" || r.nombre == "Tecnico" || r.nombre == "Administrador" || r.nombre == "Empleado")
                                  && u.activo == true
                                  select new
                                  {
