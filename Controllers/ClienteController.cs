@@ -4,6 +4,7 @@ using static Proyecto_DAW_Grupo_10.Servicios.AutenticationAttribute;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using static Proyecto_DAW_Grupo_10.Controllers.TecnicoController;
+using Proyecto_DAW_Grupo_10.Servicios;
 
 
 namespace Proyecto_DAW_Grupo_10.Controllers
@@ -11,6 +12,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
     [Autenticacion]
     public class ClienteController : Controller
     {
+        private IConfiguration _configuration; // Se agrego para los correos
         private readonly TicketsDbContext _context;
         // Agregar al inicio del controlador
         private void CargarDatosParaTicket()
@@ -24,9 +26,10 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             ViewData["listaPrioridades"] = new SelectList(prioridades, "prioridadId", "nombre");
         }
 
-        public ClienteController(TicketsDbContext context)
+        public ClienteController(TicketsDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration; //Se agrego para los correos
         }
 
         [HttpGet]
@@ -137,6 +140,30 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                     // Guardar el ticket
                     _context.ticket.Add(nuevoTicket);
                     await _context.SaveChangesAsync();
+
+                    //Se agrego para los correos
+                    //Variables para el correo
+                    var problema = await _context.problema
+                    .Where(p => p.problemaId == nuevoTicket.problemaId)
+                    .Select(p => p.nombre)
+                    .FirstOrDefaultAsync();
+
+                    int usuarioId = HttpContext.Session.GetInt32("usuarioId") ?? 0;
+                    var usuario = await _context.usuario.FindAsync(usuarioId);
+                    string fecha = nuevoTicket.fechaApertura.ToString("dd/MM/yyyy");
+                    string hora = nuevoTicket.fechaApertura.ToString("HH:mm");
+                    string asunto = $"Hemos recibido tu solicitud #{nuevoTicket.ticketId} - {problema}";
+                    string cuerpo = $"Hola {usuario.nombre},\n\n" +
+                    $"¡Gracias por ponerte en contacto con nosotros! Hemos creado un ticket #{nuevoTicket.ticketId} para el problema \"{problema}\" registrado el {fecha} a las {hora}. Nuestro equipo lo revisará y te notificará los próximos pasos.\n\n" +
+                    "Estamos aquí para ayudarte,\n\n" +
+                    "Ayudín";
+
+                    correo enviarCorreo = new correo(_configuration);
+                    enviarCorreo.enviar(
+                        destinatario: usuario.correo,
+                        asunto: asunto,
+                        cuerpo: cuerpo
+                    );
 
                     return Json(new { success = true, ticketId = nuevoTicket.ticketId });
                 }
