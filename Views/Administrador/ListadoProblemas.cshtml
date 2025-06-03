@@ -1,0 +1,404 @@
+﻿@{
+    ViewData["Title"] = "Gestión de tipos de problemas";
+}
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
+<div class="container mt-4">
+    <h2 style="margin-bottom:20px" class="dashboard-title">@ViewData["Title"]</h2>
+
+
+    <form asp-action="ListadoProblemas" method="get" style="display: flex; align-items: center; gap: 10px;">
+        <div class="search-container" style="flex-grow: 1; position: relative;">
+            <input type="text" name="busqueda" value="@ViewBag.Busqueda" placeholder="Buscar tipo de problema"
+                   style="width: 100%; padding: 8px 40px 8px 12px; border-radius: 25px; border: 1px solid #ccc; box-sizing: border-box;" />
+            <i class="fa fa-search" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+        </div>
+
+        <a href="@Url.Action("CrearProblema")" class="btn btn-primary"
+           style="padding: 8px 18px; border-radius: 25px; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+            <i class="fa fa-plus"></i> Agregar nuevo problema
+        </a>
+    </form>
+
+
+
+
+    <div style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 1050; width: 90%; max-width: 600px;">
+        @if (TempData["Mensaje"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert"
+                 style="border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); padding: 1rem;">
+                @TempData["Mensaje"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                 style="border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); padding: 1rem;">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+    </div>
+
+
+
+    <div class="table-container">
+        <div class="tasks-section">
+            <table class="table modern-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Problema</th>
+                        <th>Categoría</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in ViewBag.Problemas)
+                    {
+                        <tr>
+                            <td class="id-column">@item.problemaId</td>
+                            <td>@item.nombre</td>
+                            <td>@item.Categoria</td>
+                            <td>
+                                <a href="#" class="btn-editar"
+                                   onclick="event.preventDefault(); abrirModalEditar(@item.problemaId, '@item.nombre', @item.categoriaId)">
+                                    Editar
+                                </a>
+
+
+                                <form method="post" asp-action="EliminarProblema" style="display:inline;" onsubmit="return confirm('¿Eliminar este problema?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="problemaId" value="@item.problemaId" />
+                                    <input type="hidden" name="busqueda" value="@ViewBag.Busqueda" />
+                                    <button type="submit" class="btn-eliminar">
+                                        Eliminar
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<div id="modal-editar" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModalEditar()">&times;</span>
+
+
+        <form method="post" asp-action="ActualizarProblema" id="formEditarProblema">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" name="busqueda" value="@ViewBag.Busqueda" />
+
+            <div class="form-group d-flex align-items-center mb-3">
+                <label for="problemaId" class="form-label-custom me-3 mb-0">ID:</label>
+                <input type="text" id="problemaId" name="problemaId" class="form-control form-text-custom" readonly />
+            </div>
+
+            <div class="form-group d-flex align-items-center mb-3">
+                <label for="categoriaId" class="form-label-custom me-3 mb-0">Categoría:</label>
+                <select id="categoriaId" name="categoriaId" class="form-control form-text-custom">
+                    @foreach (var categoria in ViewBag.Categorias)
+                    {
+                        <option value="@categoria.categoriaId">@categoria.nombre</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group d-flex align-items-center mb-3">
+                <label for="nombre" class="form-label-custom me-3 mb-0">Problema:</label>
+                <input type="text" id="nombre" name="nombre" class="form-control form-text-custom" required />
+            </div>
+
+
+            <button style="margin-top: 60px" type="submit" class="btn btn-primary mt-3">Guardar cambios</button>
+        </form>
+
+    </div>
+</div>
+
+
+
+<style>
+        :root {
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --pending-bg: #dbeafe;
+            --pending-accent: #3b82f6;
+        }
+
+        .dashboard-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0 0 0.5rem;
+        }
+
+        .form-control.form-text-custom {
+            margin-top: 1.5rem; /* más espacio arriba dentro del input */
+            margin-bottom: 1.5rem; /* más espacio abajo dentro del input */
+
+        }
+
+
+        .form-label-custom {
+            width: 100px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+
+        }
+
+        .form-text-custom {
+            max-width: 300px;
+            font-weight: 500;
+            color: #495057;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+
+
+        .tasks-section {
+            background: linear-gradient(135deg, var(--pending-bg) 0%, #bfdbfe 100%);
+            border: 2px solid var(--pending-accent);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            padding: 0px;
+        }
+
+        .modern-table {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: none;
+            border: none;
+            background: white;
+            margin: 0;
+            width: 100%;
+        }
+
+        .modern-table thead th {
+            background-color: #f8f9fa;
+            border: none;
+            padding: 16px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modern-table tbody td {
+            border: none;
+            padding: 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .modern-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .modern-table tbody tr:hover {
+            background-color: #f8f9fa;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-editar {
+            background-color: #6c757d;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-editar:hover {
+            background-color: #5a6268;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        .btn-eliminar {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s ease;
+        }
+
+        .btn-eliminar:hover {
+            background-color: #0056b3;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        .table-container {
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .modern-table .id-column {
+            font-weight: 600;
+            color: #495057;
+            width: 80px;
+        }
+
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 815px;
+
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            font-size: 16px;
+        }
+
+        .search-container .fa-search {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            pointer-events: none;
+        }
+
+       
+        .modal {
+            display: none; /* Oculto por defecto */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            padding: 40px 20px; 
+            box-sizing: border-box;
+        }
+
+        /* Contenido del modal */
+        .modal-content {
+            background-color: #fff;
+            margin: auto;
+            padding: 30px 40px; 
+            border-radius: 15px; 
+            max-width: 500px;
+            box-sizing: border-box;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+       
+        .form-row {
+            margin-bottom: 25px; 
+            display: flex;
+            flex-direction: column;
+        }
+
+           
+            .form-row label {
+                margin-bottom: 8px;
+                font-weight: 600;
+            }
+
+        
+            .form-row input[type="text"],
+            .form-row select {
+                padding: 10px 12px;
+                font-size: 1rem;
+                border: 1px solid #ccc;
+                border-radius: 8px;
+                box-sizing: border-box;
+            }
+
+       
+        #formEditarProblema button[type="submit"] {
+            display: block;
+            margin: 30px auto 0 auto; 
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 25px; 
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+            #formEditarProblema button[type="submit"]:hover {
+                background-color: #0056b3;
+            }
+
+        
+            .close {
+      position: absolute;
+      top: 15px;
+     right: 15px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+      color: #333;
+    }
+
+    .close:hover {
+      color: #000;
+    }
+
+
+
+</style>
+@section Scripts {
+    <script>
+        function abrirModalEditar(id, nombre, categoriaId) {
+            document.getElementById('problemaId').value = id;
+            document.getElementById('nombre').value = nombre;
+            document.getElementById('categoriaId').value = categoriaId;
+
+            document.getElementById('modal-editar').style.display = 'block';
+        }
+
+        function cerrarModalEditar() {
+            document.getElementById('modal-editar').style.display = 'none';
+        }
+
+        // Cerrar modal si se clickea fuera del contenido
+        window.onclick = function (event) {
+            var modal = document.getElementById('modal-editar');
+            if (event.target == modal) {
+                cerrarModalEditar();
+            }
+        }
+    </script>
+}

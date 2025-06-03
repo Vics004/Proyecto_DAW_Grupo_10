@@ -155,6 +155,342 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         }
 
 
+        //Otros CRUDS
+        //Tipos de Problemas
+        public IActionResult ListadoProblemas(string busqueda, int? editarId = null)
+        {
+            var problemas = from p in _ticketsDbContext.problema
+                            join c in _ticketsDbContext.categoria on p.categoriaId equals c.categoriaId
+                            select new
+                            {
+                                p.problemaId,
+                                p.nombre,
+                                Categoria = c.nombre,
+                                c.categoriaId
+                            };
+
+            if (!string.IsNullOrEmpty(busqueda))
+            {
+                problemas = problemas.Where(p => p.nombre.Contains(busqueda));
+            }
+
+            var listaProblemas = problemas.ToList();
+            var categorias = _ticketsDbContext.categoria.OrderBy(c => c.nombre).ToList();
+
+            ViewBag.Problemas = listaProblemas;
+            ViewBag.Categorias = categorias;
+            ViewBag.Busqueda = busqueda;
+
+         
+            if (editarId.HasValue)
+            {
+                var problemaAEditar = _ticketsDbContext.problema.FirstOrDefault(p => p.problemaId == editarId);
+                ViewBag.ProblemaAEditar = problemaAEditar;
+                ViewBag.MostrarModal = true; 
+            }
+            else
+            {
+                ViewBag.MostrarModal = false;
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ActualizarProblema(int problemaId, string nombre, int categoriaId, string busqueda = "")
+        {
+            if (ModelState.IsValid)
+            {
+                var problema = _ticketsDbContext.problema.FirstOrDefault(p => p.problemaId == problemaId);
+                if (problema == null)
+                    return NotFound();
+
+                problema.nombre = nombre;
+                problema.categoriaId = categoriaId;
+                _ticketsDbContext.SaveChanges();
+
+                TempData["Mensaje"] = "Problema actualizado correctamente";
+            }
+            else
+            {
+                TempData["Error"] = "Error al actualizar el problema";
+            }
+
+            return RedirectToAction("ListadoProblemas", new { busqueda = busqueda });
+
+
+        }
+
+        public IActionResult CrearProblema()
+        {
+            var categorias = _ticketsDbContext.categoria.OrderBy(c => c.nombre).ToList();
+            ViewBag.Categorias = categorias;
+            ViewBag.Busqueda = "";
+
+            return View();
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CrearProblema(string nombre, int categoriaId, string busqueda = "")
+        {
+            if (ModelState.IsValid && !string.IsNullOrWhiteSpace(nombre))
+            {
+                var nuevoProblema = new problema
+                {
+                    nombre = nombre,
+                    categoriaId = categoriaId
+                };
+
+                _ticketsDbContext.problema.Add(nuevoProblema);
+                _ticketsDbContext.SaveChanges();
+
+                TempData["Mensaje"] = "Problema creado correctamente";
+            }
+            else
+            {
+                TempData["Error"] = "Error al crear el problema";
+            }
+
+            return RedirectToAction("ListadoProblemas", new { busqueda = busqueda });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EliminarProblema(int problemaId, string busqueda = "")
+        {
+            var problema = _ticketsDbContext.problema.FirstOrDefault(p => p.problemaId == problemaId);
+            if (problema == null)
+            {
+                TempData["Error"] = "No se encontró el problema para eliminar.";
+                return RedirectToAction("ListadoProblemas", new { busqueda });
+            }
+
+            _ticketsDbContext.problema.Remove(problema);
+            _ticketsDbContext.SaveChanges();
+
+            TempData["Mensaje"] = "Problema eliminado correctamente.";
+            return RedirectToAction("ListadoProblemas", new { busqueda });
+        }
+
+
+        /*Categorias*/
+        public IActionResult ListadoCategorias(string busqueda, int? editarId = null)
+        {
+            var categorias = from c in _ticketsDbContext.categoria
+                             select new
+                             {
+                                 c.categoriaId,
+                                 Categoria = c.nombre
+
+                             };
+
+            if (!string.IsNullOrEmpty(busqueda))
+            {
+                categorias = categorias.Where(c => c.Categoria.Contains(busqueda));
+            }
+
+            var listaCategorias = categorias.ToList();
+            ViewBag.Categorias = listaCategorias;
+            ViewBag.Busqueda = busqueda;
+
+
+            if (editarId.HasValue)
+            {
+                var categoriaAEditar = _ticketsDbContext.categoria.FirstOrDefault(c => c.categoriaId == editarId);
+                ViewBag.CategoriaAEditar = categoriaAEditar;
+                ViewBag.MostrarModal = true;
+            }
+            else
+            {
+                ViewBag.MostrarModal = false;
+            }
+
+            return View();
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ActualizarCategoria(int categoriaId, string nombre, string busqueda = "")
+        {
+            if (ModelState.IsValid)
+            {
+                var categoria = _ticketsDbContext.categoria.FirstOrDefault(c => c.categoriaId == categoriaId);
+                if (categoria == null)
+                    return NotFound();
+
+                categoria.nombre = nombre;
+                _ticketsDbContext.SaveChanges();
+
+                TempData["Mensaje"] = "Categoría actualizada correctamente";
+            }
+            else
+            {
+                TempData["Error"] = "Error al actualizar la categoría";
+            }
+
+            return RedirectToAction("ListadoCategorias", new { busqueda = busqueda });
+
+
+        }
+
+
+        public IActionResult CrearCategoria()
+        {
+            var categorias = _ticketsDbContext.categoria.OrderBy(c => c.nombre).ToList();
+            ViewBag.Categorias = categorias;
+            ViewBag.Busqueda = "";
+
+            return View();
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CrearCategoria(string nombre, string busqueda = "")
+        {
+            if (ModelState.IsValid && !string.IsNullOrWhiteSpace(nombre))
+            {
+                var nuevoCategoria = new categoria
+                {
+                    nombre = nombre
+                };
+
+                _ticketsDbContext.categoria.Add(nuevoCategoria);
+                _ticketsDbContext.SaveChanges();
+
+                TempData["Mensaje"] = "Categoría creada correctamente";
+            }
+            else
+            {
+                TempData["Error"] = "Error al crear la categoría";
+            }
+
+            return RedirectToAction("ListadoCategorias", new { busqueda = busqueda });
+        }
+
+        /*Roles*/
+        public IActionResult ListadoRoles(string busqueda, int? editarId = null)
+        {
+            var roles = from r in _ticketsDbContext.rol
+                        join c in _ticketsDbContext.categoria on r.categoriaId equals c.categoriaId
+                        select new
+                        {
+                            r.rolId,
+                            r.nombre,
+                            Categoria = c.nombre,
+                            c.categoriaId
+                        };
+
+            if (!string.IsNullOrEmpty(busqueda))
+            {
+                roles = roles.Where(p => p.nombre.Contains(busqueda));
+            }
+
+            var listaRoles = roles.ToList();
+            var categorias = _ticketsDbContext.categoria.OrderBy(c => c.nombre).ToList();
+
+            ViewBag.Roles = listaRoles;
+            ViewBag.Categorias = categorias;
+            ViewBag.Busqueda = busqueda;
+
+            if (editarId.HasValue)
+            {
+                var rolAEditar = _ticketsDbContext.rol.FirstOrDefault(r => r.rolId == editarId);
+                ViewBag.RolAEditar = rolAEditar;
+                ViewBag.MostrarModal = true;
+            }
+            else
+            {
+                ViewBag.MostrarModal = false;
+            }
+
+            return View();
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ActualizarRol(int rolId, string nombre, int categoriaId, string busqueda = "")
+        {
+            if (ModelState.IsValid)
+            {
+                var rol = _ticketsDbContext.rol.FirstOrDefault(r => r.rolId == rolId);
+                if (rol == null)
+                    return NotFound();
+
+                rol.nombre = nombre;
+                rol.categoriaId = categoriaId;
+                _ticketsDbContext.SaveChanges();
+
+                TempData["Mensaje"] = "Rol actualizado correctamente";
+            }
+            else
+            {
+                TempData["Error"] = "Error al actualizar el rol";
+            }
+
+            return RedirectToAction("ListadoRoles", new { busqueda = busqueda });
+
+
+        }
+
+        public IActionResult CrearRol()
+        {
+            var categorias = _ticketsDbContext.categoria.OrderBy(c => c.nombre).ToList();
+            ViewBag.Categorias = categorias;
+            ViewBag.Busqueda = "";
+
+            return View();
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CrearRol(string nombre, int categoriaId, string busqueda = "")
+        {
+            if (ModelState.IsValid && !string.IsNullOrWhiteSpace(nombre))
+            {
+                var nuevoRol = new rol
+                {
+                    nombre = nombre,
+                    categoriaId = categoriaId
+                };
+
+                _ticketsDbContext.rol.Add(nuevoRol);
+                _ticketsDbContext.SaveChanges();
+
+                TempData["Mensaje"] = "Rol creado correctamente";
+            }
+            else
+            {
+                TempData["Error"] = "Error al crear el rol";
+            }
+
+            return RedirectToAction("ListadoRoles", new { busqueda = busqueda });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EliminarRol(int rolId, string busqueda = "")
+        {
+            var rol = _ticketsDbContext.rol.FirstOrDefault(r => r.rolId == rolId);
+            if (rol == null)
+            {
+                TempData["Error"] = "No se encontró el rol para eliminar.";
+                return RedirectToAction("ListadoRoles", new { busqueda });
+            }
+
+            _ticketsDbContext.rol.Remove(rol);
+            _ticketsDbContext.SaveChanges();
+
+            TempData["Mensaje"] = "Rol eliminado correctamente.";
+            return RedirectToAction("ListadoRoles", new { busqueda });
+        }
+
 
     }
 }

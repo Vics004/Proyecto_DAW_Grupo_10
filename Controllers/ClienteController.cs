@@ -3,6 +3,7 @@ using Proyecto_DAW_Grupo_10.Models;
 using static Proyecto_DAW_Grupo_10.Servicios.AutenticationAttribute;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using static Proyecto_DAW_Grupo_10.Controllers.TecnicoController;
 
 
 namespace Proyecto_DAW_Grupo_10.Controllers
@@ -205,6 +206,15 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             return View();
         }
 
+        public class ActividadDTO
+        {
+            public int UsuarioId { get; set; } 
+            public string Usuario { get; set; }
+            public DateTime Fecha { get; set; }
+            public string Tipo { get; set; } // "Comentario" o "Cambio de Estado"
+            public string Detalle { get; set; }
+        }
+
         [Autenticacion]
         public IActionResult DetalleTicket(int id)
         {
@@ -247,20 +257,40 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                             }).ToList();
             ViewBag.Archivos = archivos;
 
-            // Obtener comentarios
-            var comentarios = (from c in _context.comentario
-                               join u in _context.usuario on c.usuarioId equals u.usuarioId
-                               where c.ticketId == id
-                               orderby c.fecha descending
-                               select new
-                               {
-                                   c.comentarioId,
-                                   c.texto,
-                                   c.fecha,
-                                   usuarioId = u.usuarioId,
-                                   usuarioNombre = u.nombre
-                               }).ToList();
-            ViewBag.Comentarios = comentarios;
+            // Obtener comentarios incluyendo el usuarioId
+            var comentariosList = (from com in _context.comentario
+                                   join u in _context.usuario on com.usuarioId equals u.usuarioId
+                                   where com.ticketId == id
+                                   select new ActividadDTO
+                                   {
+                                       UsuarioId = u.usuarioId,  // Incluir el ID del usuario
+                                       Usuario = u.nombre,
+                                       Fecha = com.fecha,
+                                       Tipo = "Comentario",
+                                       Detalle = com.texto
+                                   }).ToList();
+
+            // Obtener historial de estados incluyendo el usuarioId
+            var historialEstados = (from he in _context.historialEstados
+                                    join u in _context.usuario on he.usuarioId equals u.usuarioId
+                                    join e in _context.estado on he.estadoNuevoId equals e.estadoId
+                                    where he.ticketId == id
+                                    select new ActividadDTO
+                                    {
+                                        UsuarioId = u.usuarioId,  // Incluir el ID del usuario
+                                        Usuario = u.nombre,
+                                        Fecha = he.fechaNuevo,
+                                        Tipo = "Cambio de Estado",
+                                        Detalle = "Estado cambiado a: " + e.nombre
+                                    }).ToList();
+
+            // Combinar y ordenar actividades
+            var actividadCompleta = comentariosList
+                .Concat(historialEstados)
+                .OrderBy(a => a.Fecha)
+                .ToList();
+
+            ViewBag.Actividad = actividadCompleta;
 
             return View();
         }
