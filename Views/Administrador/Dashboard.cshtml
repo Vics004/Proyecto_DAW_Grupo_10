@@ -1,178 +1,464 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-    ViewData["Title"] = "Dashboard";
+﻿@{
+    ViewData["Title"] = "Dashboard de Tickets";
 }
 
 <div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-    </div>
-
-    <!-- Resumen de tickets -->
     <div class="row">
-        <!-- Tickets Creados -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Tickets Creados
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+            <div class="position-sticky pt-3">
+                <div class="company-header">
+                    <h4 class="company-name">Nombre empresa</h4>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="./Dashboard">
+                            <span data-feather="home"></span>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./Usuarios">
+                            <span data-feather="file-text"></span>
+                            Gestión de Usuarios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./GestionTickets">
+                            <span data-feather="clock"></span>
+                            Gestión de Tickets
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./Reportes">
+                            <span data-feather="tag"></span>
+                            Reportes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./Categorias">
+                            <span data-feather="tag"></span>
+                            Categorías
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./TiposdeProblemas">
+                            <span data-feather="tag"></span>
+                            Tipos de Problemas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./Roles">
+                            <span data-feather="tag"></span>
+                            Roles
+                        </a>
+                    </li>
+                </ul>
+                <div class="mt-auto p-3 border-top">
+                    <a href="/Login/Logout" class="nav-link logout-link">
+                        <span data-feather="log-out"></span>
+                        Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Dashboard</h1>
+            </div>
+
+            <!-- Resumen de tickets -->
+            <div class="row">
+                <!-- Tickets Creados -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Tickets Creados
+                                    </div>
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col-auto">
+                                            <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">@ViewBag.CantidadCreados</div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="progress progress-sm mr-2">
+                                                <div class="progress-bar bg-primary" role="progressbar"
+                                                     style="width: @ViewBag.PorcentajeCreados%"
+                                                     aria-valuenow="@ViewBag.PorcentajeCreados"
+                                                     aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-plus-circle fa-2x text-gray-300"></i>
+                                </div>
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.CantidadCreados</div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-plus-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+
+                <!-- Tickets En Proceso -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Tickets En Proceso
+                                    </div>
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col-auto">
+                                            <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">@ViewBag.CantidadEnProceso</div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="progress progress-sm mr-2">
+                                                <div class="progress-bar bg-warning" role="progressbar"
+                                                     style="width: @ViewBag.PorcentajeEnProceso%"
+                                                     aria-valuenow="@ViewBag.PorcentajeEnProceso"
+                                                     aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-spinner fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tickets Finalizados -->
+                <div class="col-xl-4 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Tickets Finalizados
+                                    </div>
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col-auto">
+                                            <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">@ViewBag.CantidadFinalizados</div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="progress progress-sm mr-2">
+                                                <div class="progress-bar bg-success" role="progressbar"
+                                                     style="width: @ViewBag.PorcentajeFinalizados%"
+                                                     aria-valuenow="@ViewBag.PorcentajeFinalizados"
+                                                     aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Tickets En Proceso -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Tickets En Proceso
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.CantidadEnProceso</div>
+            <!-- Gráfico de resumen -->
+            <div class="row">
+                <div class="col-xl-8 col-lg-7">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">Distribución de Tickets</h6>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-spinner fa-2x text-gray-300"></i>
+                        <div class="card-body">
+                            <div class="chart-pie pt-4 pb-2">
+                                <canvas id="myPieChart"></canvas>
+                            </div>
+                            <div class="mt-4 text-center small">
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-primary"></i> Creados
+                                </span>
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-warning"></i> En Proceso
+                                </span>
+                                <span class="mr-2">
+                                    <i class="fas fa-circle text-success"></i> Finalizados
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen rápido -->
+                <div class="col-xl-4 col-lg-5">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">Resumen</h6>
+                        </div>
+                        <div class="card-body">
+                            <h4 class="small font-weight-bold">
+                                Tickets Creados <span class="float-right">@ViewBag.CantidadCreados</span>
+                            </h4>
+                            <div class="progress mb-4">
+                                <div class="progress-bar bg-primary" role="progressbar"
+                                     style="width: @ViewBag.PorcentajeCreados%"
+                                     aria-valuenow="@ViewBag.PorcentajeCreados"
+                                     aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <h4 class="small font-weight-bold">
+                                Tickets en Proceso <span class="float-right">@ViewBag.CantidadEnProceso</span>
+                            </h4>
+                            <div class="progress mb-4">
+                                <div class="progress-bar bg-warning" role="progressbar"
+                                     style="width: @ViewBag.PorcentajeEnProceso%"
+                                     aria-valuenow="@ViewBag.PorcentajeEnProceso"
+                                     aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <h4 class="small font-weight-bold">
+                                Tickets Finalizados <span class="float-right">@ViewBag.CantidadFinalizados</span>
+                            </h4>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar"
+                                     style="width: @ViewBag.PorcentajeFinalizados%"
+                                     aria-valuenow="@ViewBag.PorcentajeFinalizados"
+                                     aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Tickets Finalizados -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Tickets Finalizados
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.CantidadFinalizados</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sección de Tickets Creados -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Tickets Creados</h6>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Descripción</th>
-                            <th>Usuario</th>
-                            <th>Prioridad</th>
-                            <th>Fecha Apertura</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var ticket in ViewBag.TicketsCreados)
-                        {
-                            <tr>
-                                <td>@ticket.ticketId</td>
-                                <td>@ticket.descripcion</td>
-                                <td>@ticket.UsuarioNombre</td>
-                                <td>@ticket.PrioridadNombre</td>
-                                <td>@ticket.fechaApertura.ToString("dd/MM/yyyy HH:mm")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sección de Tickets en Proceso -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-warning">Tickets en Proceso</h6>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Descripción</th>
-                            <th>Usuario</th>
-                            <th>Prioridad</th>
-                            <th>Fecha Apertura</th>
-                            <th>Última Modificación</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var ticket in ViewBag.TicketsEnProceso)
-                        {
-                            <tr>
-                                <td>@ticket.ticketId</td>
-                                <td>@ticket.descripcion</td>
-                                <td>@ticket.UsuarioNombre</td>
-                                <td>@ticket.PrioridadNombre</td>
-                                <td>@ticket.fechaApertura.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>@(ticket.fechaModificacion?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sección de Tickets Finalizados -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-success">Tickets Finalizados</h6>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Descripción</th>
-                            <th>Usuario</th>
-                            <th>Prioridad</th>
-                            <th>Fecha Apertura</th>
-                            <th>Fecha Cierre</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var ticket in ViewBag.TicketsFinalizados)
-                        {
-                            <tr>
-                                <td>@ticket.ticketId</td>
-                                <td>@ticket.descripcion</td>
-                                <td>@ticket.UsuarioNombre</td>
-                                <td>@ticket.PrioridadNombre</td>
-                                <td>@ticket.fechaApertura.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>@(ticket.fechaCierre?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        </main>
     </div>
 </div>
+
+@section Scripts {
+    <!-- Page level plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
+    <!-- Feather Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+
+    <script>
+        // Activar feather icons
+        document.addEventListener('DOMContentLoaded', function () {
+            feather.replace();
+
+            // Pie Chart
+            var ctx = document.getElementById("myPieChart");
+            if (ctx) {
+                var myPieChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ["Creados", "En Proceso", "Finalizados"],
+                        datasets: [{
+                            data: [@ViewBag.CantidadCreados, @ViewBag.CantidadEnProceso, @ViewBag.CantidadFinalizados],
+                            backgroundColor: ['#4e73df', '#f6c23e', '#1cc88a'],
+                            hoverBackgroundColor: ['#2e59d9', '#dda20a', '#17a673'],
+                            hoverBorderColor: "rgba(234, 236, 244, 1)",
+                        }],
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'right',
+                            }
+                        },
+                        cutout: '80%',
+                    },
+                });
+            }
+        });
+    </script>
+}
+
+
+<style>
+    :root {
+        --primary-color: #6366f1;
+        --primary-dark: #4f46e5;
+        --secondary-color: #64748b;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --light-gray: #f8fafc;
+        --medium-gray: #e2e8f0;
+        --dark-gray: #475569;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+        background: white;
+        border-right: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .company-header {
+        padding: 1.5rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 1rem;
+    }
+
+    .company-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin: 0;
+    }
+
+    .sidebar .nav-link {
+        color: var(--text-secondary);
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        margin: 0 0.75rem 0.25rem;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+        .sidebar .nav-link svg {
+            width: 18px;
+            height: 18px;
+            margin-right: 0.75rem;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: var(--light-gray);
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+        }
+
+    .logout-link {
+        color: var(--danger-color) !important;
+    }
+
+        .logout-link:hover {
+            background-color: #fee2e2 !important;
+        }
+
+    /* Main Content Adjustments */
+    main {
+        background-color: var(--light-gray);
+        min-height: calc(100vh - 56px);
+    }
+
+    /* Card Styles */
+    .card {
+        border-radius: 0.5rem;
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+    .card-header {
+        background-color: white;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    /* Progress Bars */
+    .progress {
+        height: 0.5rem;
+        border-radius: 0.25rem;
+        background-color: var(--medium-gray);
+    }
+
+    .progress-bar {
+        border-radius: 0.25rem;
+    }
+
+    /* Chart Container */
+    .chart-pie {
+        position: relative;
+        height: 300px;
+    }
+
+    /* Responsive Adjustments */
+    @@media (max-width: 768px) {
+        .sidebar {
+            position: fixed;
+            z-index: 1000;
+            height: 100vh;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+        main {
+            margin-left: 0;
+        }
+    }
+
+    /* Icon Colors */
+    .fa-circle.text-primary {
+        color: var(--primary-color);
+    }
+
+    .fa-circle.text-warning {
+        color: var(--warning-color);
+    }
+
+    .fa-circle.text-success {
+        color: var(--success-color);
+    }
+
+    /* Text Styles */
+    .text-gray-800 {
+        color: var(--text-primary);
+    }
+
+    .text-primary {
+        color: var(--primary-color) !important;
+    }
+
+    .text-warning {
+        color: var(--warning-color) !important;
+    }
+
+    .text-success {
+        color: var(--success-color) !important;
+    }
+
+    /* Border Colors */
+    .border-left-primary {
+        border-left: 0.25rem solid var(--primary-color) !important;
+    }
+
+    .border-left-warning {
+        border-left: 0.25rem solid var(--warning-color) !important;
+    }
+
+    .border-left-success {
+        border-left: 0.25rem solid var(--success-color) !important;
+    }
+
+    /* Shadow Utilities */
+    .shadow {
+        box-shadow: var(--shadow-sm) !important;
+    }
+
+    .shadow-lg {
+        box-shadow: var(--shadow-lg) !important;
+    }
+</style>

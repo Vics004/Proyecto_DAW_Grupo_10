@@ -17,66 +17,18 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         //Dashboard
         public IActionResult Dashboard()
         {
-            // Consulta para tickets creados (estadoId = 1)
-            var ticketsCreados = (from t in _ticketsDbContext.ticket
-                                  join u in _ticketsDbContext.usuario on t.usuarioCreadorId equals u.usuarioId
-                                  join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
-                                  join p in _ticketsDbContext.prioridad on t.prioridadId equals p.prioridadId
-                                  where t.estadoId == 1
-                                  select new
-                                  {
-                                      t.ticketId,
-                                      t.descripcion,
-                                      UsuarioNombre = u.nombre,
-                                      PrioridadNombre = p.nombre,
-                                      t.fechaApertura,
-                                      EstadoNombre = e.nombre
-                                  }).Take(3).ToList();
-
-            // Consulta para tickets en proceso (estadoId = 4)
-            var ticketsEnProceso = (from t in _ticketsDbContext.ticket
-                                    join u in _ticketsDbContext.usuario on t.usuarioCreadorId equals u.usuarioId
-                                    join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
-                                    join p in _ticketsDbContext.prioridad on t.prioridadId equals p.prioridadId
-                                    where t.estadoId == 4
-                                    select new
-                                    {
-                                        t.ticketId,
-                                        t.descripcion,
-                                        UsuarioNombre = u.nombre,
-                                        PrioridadNombre = p.nombre,
-                                        t.fechaApertura,
-                                        t.fechaModificacion,
-                                        EstadoNombre = e.nombre
-                                    }).Take(3).ToList();
-
-            // Consulta para tickets finalizados (estadoId = 6)
-            var ticketsFinalizados = (from t in _ticketsDbContext.ticket
-                                      join u in _ticketsDbContext.usuario on t.usuarioCreadorId equals u.usuarioId
-                                      join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
-                                      join p in _ticketsDbContext.prioridad on t.prioridadId equals p.prioridadId
-                                      where t.estadoId == 6
-                                      select new
-                                      {
-                                          t.ticketId,
-                                          t.descripcion,
-                                          UsuarioNombre = u.nombre,
-                                          PrioridadNombre = p.nombre,
-                                          t.fechaApertura,
-                                          t.fechaCierre,
-                                          EstadoNombre = e.nombre
-                                      }).Take(3).ToList();
-
-            // Obtener conteos totales (sin limitar a 3)
+            // Obtener conteos totales
             ViewBag.CantidadCreados = _ticketsDbContext.ticket.Count(t => t.estadoId == 1);
             ViewBag.CantidadEnProceso = _ticketsDbContext.ticket.Count(t => t.estadoId == 4);
             ViewBag.CantidadFinalizados = _ticketsDbContext.ticket.Count(t => t.estadoId == 6);
 
-            // Pasar los datos a la vista
-            ViewBag.TicketsCreados = ticketsCreados;
-            ViewBag.TicketsEnProceso = ticketsEnProceso;
-            ViewBag.TicketsFinalizados = ticketsFinalizados;
-            
+            // Obtener total general para calcular porcentajes
+            int totalTickets = ViewBag.CantidadCreados + ViewBag.CantidadEnProceso + ViewBag.CantidadFinalizados;
+
+            // Calcular porcentajes (evitando división por cero)
+            ViewBag.PorcentajeCreados = totalTickets > 0 ? (ViewBag.CantidadCreados * 100 / totalTickets) : 0;
+            ViewBag.PorcentajeEnProceso = totalTickets > 0 ? (ViewBag.CantidadEnProceso * 100 / totalTickets) : 0;
+            ViewBag.PorcentajeFinalizados = totalTickets > 0 ? (ViewBag.CantidadFinalizados * 100 / totalTickets) : 0;
 
             return View();
         }
