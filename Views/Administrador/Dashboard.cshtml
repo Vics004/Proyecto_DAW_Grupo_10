@@ -4,67 +4,10 @@
 
 <div class="container-fluid">
     <div class="row">
-        <!-- Sidebar -->
-        <nav class="col-md-3 col-lg-2 d-md-block sidebar">
-            <div class="position-sticky pt-3">
-                <div class="company-header">
-                    <h4 class="company-name">Nombre empresa</h4>
-                </div>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="./Dashboard">
-                            <span data-feather="home"></span>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./Usuarios">
-                            <span data-feather="file-text"></span>
-                            Gestión de Usuarios
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./GestionTickets">
-                            <span data-feather="clock"></span>
-                            Gestión de Tickets
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./Reportes">
-                            <span data-feather="tag"></span>
-                            Reportes
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./Categorias">
-                            <span data-feather="tag"></span>
-                            Categorías
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./TiposdeProblemas">
-                            <span data-feather="tag"></span>
-                            Tipos de Problemas
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./Roles">
-                            <span data-feather="tag"></span>
-                            Roles
-                        </a>
-                    </li>
-                </ul>
-                <div class="mt-auto p-3 border-top">
-                    <a href="/Login/Logout" class="nav-link logout-link">
-                        <span data-feather="log-out"></span>
-                        Cerrar Sesión
-                    </a>
-                </div>
-            </div>
-        </nav>
+        
 
         <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 main-content">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">Dashboard</h1>
             </div>
@@ -294,67 +237,12 @@
         --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     }
 
-    /* Sidebar Styles */
-    .sidebar {
-        background: white;
-        border-right: 1px solid var(--border-color);
-        box-shadow: var(--shadow-sm);
-    }
-
-    .company-header {
-        padding: 1.5rem 1.5rem;
-        border-bottom: 1px solid var(--border-color);
-        margin-bottom: 1rem;
-    }
-
-    .company-name {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--primary-color);
-        margin: 0;
-    }
-
-    .sidebar .nav-link {
-        color: var(--text-secondary);
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.5rem;
-        margin: 0 0.75rem 0.25rem;
-        display: flex;
-        align-items: center;
-        transition: all 0.2s ease;
-        text-decoration: none;
-    }
-
-        .sidebar .nav-link svg {
-            width: 18px;
-            height: 18px;
-            margin-right: 0.75rem;
-        }
-
-        .sidebar .nav-link:hover {
-            background-color: var(--light-gray);
-            color: var(--text-primary);
-            text-decoration: none;
-        }
-
-        .sidebar .nav-link.active {
-            background-color: var(--primary-color);
-            color: white;
-            font-weight: 500;
-        }
-
-    .logout-link {
-        color: var(--danger-color) !important;
-    }
-
-        .logout-link:hover {
-            background-color: #fee2e2 !important;
-        }
+    
 
     /* Main Content Adjustments */
     main {
         background-color: var(--light-gray);
-        min-height: calc(100vh - 56px);
+
     }
 
     /* Card Styles */
@@ -393,17 +281,7 @@
 
     /* Responsive Adjustments */
     @@media (max-width: 768px) {
-        .sidebar {
-            position: fixed;
-            z-index: 1000;
-            height: 100vh;
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-        }
 
-            .sidebar.show {
-                transform: translateX(0);
-            }
 
         main {
             margin-left: 0;
