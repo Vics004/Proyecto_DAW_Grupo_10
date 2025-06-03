@@ -1,0 +1,256 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model List<Proyecto_DAW_Grupo_10.Models.usuario>
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+            <div class="position-sticky pt-3">
+                <div class="company-header">
+                    <h4 class="company-name">Nombre empresa</h4>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="./Dashboard">
+                            <span data-feather="home"></span>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./Usuarios">
+                            <span data-feather="file-text"></span>
+                            Gestión de Usuarios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./GestionTickets">
+                            <span data-feather="clock"></span>
+                            Gestión de Tickets
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./Reportes">
+                            <span data-feather="tag"></span>
+                            Reportes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./Categorias">
+                            <span data-feather="tag"></span>
+                            Categorías
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./TiposdeProblemas">
+                            <span data-feather="tag"></span>
+                            Tipos de Problemas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./Roles">
+                            <span data-feather="tag"></span>
+                            Roles
+                        </a>
+                    </li>
+                </ul>
+                <div class="mt-auto p-3 border-top">
+                    <a href="/Login/Logout" class="nav-link logout-link">
+                        <span data-feather="log-out"></span>
+                        Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Contenido principal -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Gestión de Usuarios</h1>
+                <a asp-action="Create" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearUsuarioModal">Crear Usuario</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Rol</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var usuario in Model)
+                        {
+                            <tr>
+                                <td>@usuario.usuarioId</td>
+                                <td>@usuario.nombre</td>
+                                <td>@usuario.correo</td>
+                                <td>@usuario.telefono</td>
+                                <td>@usuario.rol?.nombre</td>
+                                <td>@(usuario.tipoUsuario ? "Interno" : "Externo")</td>
+                                <td>@(usuario.activo ? "Activo" : "Inactivo")</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editUsuarioModal"
+                                            data-id="@usuario.usuarioId"
+                                            data-nombre="@usuario.nombre"
+                                            data-correo="@usuario.correo"
+                                            data-telefono="@usuario.telefono"
+                                            data-rolid="@usuario.rolId"
+                                            data-tipousuario="@usuario.tipoUsuario.ToString().ToLower()"
+                                            data-activo="@usuario.activo.ToString().ToLower()"
+                                            onclick="cargarDatosModal(this)">
+                                        Editar
+                                    </button>
+                                    <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('¿Deseas eliminar este usuario?');">
+                                        <input type="hidden" name="id" value="@usuario.usuarioId" />
+                                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </main>
+        <div class="modal fade" id="crearUsuarioModal" tabindex="-1" aria-labelledby="crearUsuarioModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form asp-action="Create" method="post">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="crearUsuarioModalLabel">Nuevo Usuario</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Aquí colocas los campos del formulario -->
+                            <div class="mb-3">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" name="nombre" class="form-control" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Correo</label>
+                                <input type="email" name="correo" class="form-control" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Teléfono</label>
+                                <input type="text" name="telefono" class="form-control" required />
+                            </div>
+                            <div class="mb-3">
+                                <label for="rolId">Rol</label>
+                                <select name="rolId" class="form-control" required>
+                                    <option value="">-- Selecciona un rol --</option>
+                                    @foreach (var rol in ViewBag.Roles)
+                                    {
+                                        <option value="@rol.rolId">@rol.nombre</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tipoUsuario">Tipo de Usuario</label>
+                                <select name="tipoUsuario" class="form-select" required>
+                                    <option value="true">Interno</option>
+                                    <option value="false">Externo</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="activo">Estado</label>
+                                <select name="activo" class="form-select" required>
+                                    <option value="true">Activo</option>
+                                    <option value="false">Inactivo</option>
+                                </select>
+                            </div>
+                            <!-- Agrega los demás campos como teléfono, rol, tipoUsuario, activo -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="editUsuarioModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form asp-action="Edit" method="post">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Editar Usuario</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="usuarioId" id="editUsuarioId" />
+                            <div class="mb-3">
+                                <label>Nombre</label>
+                                <input type="text" name="nombre" id="editNombre" class="form-control" />
+                            </div>
+                            <div class="mb-3">
+                                <label>Correo</label>
+                                <input type="email" name="correo" id="editCorreo" class="form-control" />
+                            </div>
+                            <div class="mb-3">
+                                <label>Teléfono</label>
+                                <input type="text" name="telefono" id="editTelefono" class="form-control" />
+                            </div>
+                            <label>Rol</label>
+                            <select class="form-control" name="rolId" id="editRol">
+                                @foreach (var rol in ViewBag.Roles as List<rol>)
+                                {
+                                    <option value="@rol.rolId">@rol.nombre</option>
+                                }
+                            </select>
+                            <label>Tipo de Usuario</label>
+                            <select class="form-control" name="tipoUsuario" id="editTipoUsuario">
+                                @foreach (var item in ViewBag.TiposUsuario as List<SelectListItem>)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                            <label>Estado</label>
+                            <select class="form-control" name="activo" id="editEstado">
+                                @foreach (var item in ViewBag.Estados as List<SelectListItem>)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                            <!-- Y así con los demás campos -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+
+    </div>
+</div>
+
+@section Scripts {
+
+<script>
+    function cargarDatosModal(btn) {
+        document.getElementById('editUsuarioId').value = btn.dataset.id;
+        document.getElementById('editNombre').value = btn.dataset.nombre;
+        document.getElementById('editCorreo').value = btn.dataset.correo;
+        document.getElementById('editTelefono').value = btn.dataset.telefono;
+        document.getElementById('editRol').value = btn.dataset.rolid;
+        document.getElementById('editTipoUsuario').value = btn.dataset.tipoUsuario === 'true' ? 'true' : 'false';
+        document.getElementById('editEstado').value = btn.dataset.estado === 'true' ? 'true' : 'false';
+    }
+</script>
+}
+
