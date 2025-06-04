@@ -95,14 +95,38 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             {
                 ViewBag.EstadoTerminado = false;
             }
+            var estadoActual = (from ta in _ticketsDbContext.tarea
+                                join e in _ticketsDbContext.estado on ta.estadoId equals e.estadoId
+                                where ta.tareaId == id
+                                select e.nombre).FirstOrDefault();
+            var estadosPermitidos = new[] { "En proceso", "En espera del cliente" };
 
             var estados = (from e in _ticketsDbContext.estado
-                           where e.nombre != creado && e.nombre != "Cancelado" && e.nombre != asignado
+                           where e.nombre != creado && e.nombre != "Cancelado" && e.nombre != asignado && e.nombre != Finalizado
                            select new SelectListItem
                            {
                                Value = e.estadoId.ToString(),
                                Text = e.nombre
                            }).ToList();
+
+            // Agregar "Finalizado" solo si el estado actual está permitido
+            if (estadoActual == "En proceso" || estadoActual == "En espera del cliente")
+            {
+                var estadoFinalizado = _ticketsDbContext.estado
+                    .Where(e => e.nombre == "Finalizado")
+                    .Select(e => new SelectListItem
+                    {
+                        Value = e.estadoId.ToString(),
+                        Text = e.nombre
+                    })
+                    .FirstOrDefault();
+
+                if (estadoFinalizado != null)
+                {
+                    estados.Add(estadoFinalizado);
+                }
+            }
+
 
             ViewData["Estados"] = estados;
             ViewBag.ID = id;
@@ -122,8 +146,9 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                     where t.ticketId == idticket
                                     select new
                                     {
-                                        NombreArchivo = a.nombreArchivo,
-                                        FechaSubida = a.fechaCarga
+                                        a.archivoId,
+                                        a.nombreArchivo,
+                                        a.fechaCarga
                                     }).ToList();
 
             //obtener comentarios y cambios de estado
@@ -155,9 +180,9 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             .Concat(historialEstados)
             .OrderBy(a => a.Fecha)
             .ToList();
-
+            ViewBag.ticketID = idticket;
             ViewBag.Actividad = actividadCompleta;
-            ViewData["ArchivosAdjuntos"] = archivosAdjuntos;
+            ViewBag.Archivos = archivosAdjuntos;
 
 
             return View();
@@ -166,11 +191,15 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         public IActionResult CambiarEstado(int id, int estadoId)
         {
             var tarea = _ticketsDbContext.tarea.Find(id);
-            if (tarea != null)
+            var estadoNombre = (from e in _ticketsDbContext.estado
+                                where e.estadoId == estadoId
+                                select e.nombre).FirstOrDefault();
+            if (tarea != null )
             {
                 tarea.estadoId = estadoId;
                 _ticketsDbContext.SaveChanges();
             }
+           
             // Registrar el cambio de estado en el historial
             var historialEstado = new historialEstados
             {

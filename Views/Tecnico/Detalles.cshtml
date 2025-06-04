@@ -47,19 +47,19 @@
                                 <span data-feather="calendar"></span>
                             </div>
                             <div class="info-content">
-                                <span class="info-label">Fecha de inicio</span>
+                                <span class="info-label">Inicio Ticket</span>
                                 <span class="info-value">@detalles2.FechaInicio</span>
                             </div>
                         </div>
 
-                        @if (ViewBag.EstadoTerminado)
+                        @if (detalles2.FechaCierre != null)
                         {
                             <div class="info-item">
                                 <div class="info-icon">
                                     <span data-feather="check-circle"></span>
                                 </div>
                                 <div class="info-content">
-                                    <span class="info-label">Fecha Cierre</span>
+                                    <span class="info-label">Cierre Ticket</span>
                                     <span class="info-value">@detalles2.FechaCierre</span>
                                 </div>
                             </div>
@@ -70,7 +70,7 @@
                                 <span data-feather="activity"></span>
                             </div>
                             <div class="info-content">
-                                <span class="info-label">Estado</span>
+                                <span class="info-label">Estado Tarea</span>
                                 <span class="status-badge status-@detalles2.Estado.ToLower().Replace(" ", "-")">@detalles2.Estado</span>
                             </div>
                         </div>
@@ -106,35 +106,69 @@
             </div>
 
             <!-- Archivos Adjuntos -->
-            <div class="section-card mb-4">
+            <div class="tasks-section stats-section">
                 <div class="section-header">
-                    <h3 class="section-title">Archivos Adjuntos</h3>
-                    @if (ViewBag.EstadoTerminado == false)
+                    <h2 class="section-title">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                        </svg>
+                        Archivos Adjuntos
+                    </h2>
+                    @if (ViewBag.EstadoTerminado== false)
                     {
-                        <form asp-action="SubirArchivo" method="post">
-                            <input type="hidden" name="id" value="@ViewBag.ID" />
-                            <button type="submit" class="btn-secondary-custom">
-                                <span data-feather="upload"></span>
-                                Subir
+                        <div class="task-counter">
+                            <button type="button" class="btn-view" onclick="document.getElementById('fileInput').click()">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                                Subir archivo
                             </button>
-                        </form>
+                            <input type="file" id="fileInput" style="display: none;" onchange="subirArchivo(this)" />
+                        </div>
                     }
                 </div>
-                <div class="section-body">
-                    <div class="files-list">
-                        @foreach (var item in (IEnumerable<dynamic>)ViewData["ArchivosAdjuntos"])
+
+                <div class="tasks-grid">
+                    @if (ViewBag.Archivos != null && ViewBag.Archivos.Count > 0)
+                    {
+                        @foreach (var archivo in ViewBag.Archivos)
                         {
-                            <div class="file-item">
-                                <div class="file-icon">
-                                    <span data-feather="file"></span>
-                                </div>
-                                <div class="file-info">
-                                    <span class="file-name">@item.NombreArchivo</span>
-                                    <span class="file-date">Guardado el @item.FechaSubida.ToString("dd/MM/yyyy HH:mm")</span>
+                            <div class="task-card">
+                                <div class="task-content">
+                                    <div class="file-item">
+                                        <div class="file-icon">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="file-info">
+                                            <h3 class="file-name">@archivo.nombreArchivo</h3>
+                                            <p class="file-date">@archivo.fechaCarga.ToString("dd/MM/yyyy HH:mm")</p>
+                                        </div>
+                                        <div class="file-actions">
+                                            <a asp-controller="Cliente" asp-action="DescargarArchivo" asp-route-id="@archivo.archivoId" class="btn btn-primary">
+                                                Descargar
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         }
-                    </div>
+
+                    }
+                    else
+                    {
+                        <div class="task-card" style="grid-column: 1 / -1;">
+                            <div class="task-content">
+                                <div class="empty-state">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <p>No hay archivos adjuntos</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -142,28 +176,9 @@
             <div class="section-card">
                 <div class="section-header">
                     <h3 class="section-title">Comentarios</h3>
-                    @if (ViewBag.EstadoTerminado == false)
-                    {
-                        <button type="button" class="btn-secondary-custom" onclick="toggleComentario()">
-                            <span data-feather="message-circle"></span>
-                            Añadir Comentario
-                        </button>
-                    }
                 </div>
                 <div class="section-body">
-                    @if (ViewBag.EstadoTerminado == false)
-                    {
-                        <div id="formComentario" class="comment-form-container">
-                            <form id="comentarioForm" class="comment-form">
-                                <input type="hidden" name="id" value="@ViewBag.ID" />
-                                <input type="hidden" name="id2" value="@ViewBag.Ticket" />
-                                <div class="comment-input-group">
-                                    <textarea name="comentario" class="comment-textarea" rows="3" placeholder="Escribe tu comentario" required></textarea>
-                                    <button type="submit" class="btn-primary-custom">Subir</button>
-                                </div>
-                            </form>
-                        </div>
-                    }
+                   
 
                     <!-- Comentarios y Cambios de Estados-->
                     <div class="tasks-section completed-section">
@@ -218,6 +233,27 @@
                                             </div>
                                         }
 
+                                        @if (ViewBag.EstadoTerminado == false)
+                                        {
+                                            <button type="button" class="btn-secondary-custom" onclick="toggleComentario()">
+                                                <span data-feather="message-circle"></span>
+                                                Añadir Comentario
+                                            </button>
+                                        }
+                                        @if (ViewBag.EstadoTerminado == false)
+                                        {
+                                            <div id="formComentario" class="comment-form-container">
+                                                <form id="comentarioForm" class="comment-form">
+                                                    <input type="hidden" name="id" value="@ViewBag.ID" />
+                                                    <input type="hidden" name="id2" value="@ViewBag.Ticket" />
+                                                    <div class="comment-input-group">
+                                                        <textarea name="comentario" class="comment-textarea" rows="3" placeholder="Escribe tu comentario" required></textarea>
+                                                        <button type="submit" class="btn-primary-custom">Subir</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        }
+
 
 
 
@@ -245,6 +281,48 @@
 </div>
 
 <script>
+     function subirArchivo(input) {
+            if (input.files && input.files[0]) {
+                // Mostrar indicador de carga
+                const originalText = document.querySelector('.btn-view').innerHTML;
+                const uploadBtn = document.querySelector('.btn-view');
+                uploadBtn.innerHTML = `
+                    <svg class="animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Subiendo...
+                `;
+                uploadBtn.disabled = true;
+
+                const formData = new FormData();
+                formData.append('ticketId', '@ViewBag.ticketID');
+                formData.append('archivo', input.files[0]);
+
+                fetch('@Url.Action("SubirArchivo", "Cliente")', {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    if (response.ok) {
+                        // Mostrar éxito antes de recargar
+                        uploadBtn.innerHTML = `
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            ¡Subido!
+                        `;
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        uploadBtn.innerHTML = originalText;
+                        uploadBtn.disabled = false;
+                        alert('Error al subir el archivo');
+                    }
+                }).catch(error => {
+                    uploadBtn.innerHTML = originalText;
+                    uploadBtn.disabled = false;
+                    alert('Error al subir el archivo');
+                });
+            }
+        }
     function toggleComentario() {
         const form = document.getElementById("formComentario");
         form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
