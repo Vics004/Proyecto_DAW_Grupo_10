@@ -57,6 +57,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         //crear una clase temporal para facilitar to xd
         public class ActividadDTO
         {
+            public int UsuarioId { get; set; }
             public string Usuario { get; set; }
             public DateTime Fecha { get; set; }
             public string Tipo { get; set; } // "Comentario" o "Cambio de Estado"
@@ -65,6 +66,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         [HttpPost]
         public IActionResult Detalles(int id)
         {
+            var clienteId = HttpContext.Session.GetInt32("usuarioId");
             var tareasDetalle = (from ta in _ticketsDbContext.tarea
                                  join u in _ticketsDbContext.usuario on ta.usuarioAsignadoId equals u.usuarioId
                                  join e in _ticketsDbContext.estado on ta.estadoId equals e.estadoId
@@ -106,12 +108,14 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             ViewBag.ID = id;
 
 
+
             ViewBag.tareasDetalles = tareasDetalle;
             //Obtener los nombres de archivos adjuntos y su fecha de subida
             var idticket = (from ta in _ticketsDbContext.tarea
                             where ta.tareaId == id
                             select ta.ticketId).FirstOrDefault();
             ViewBag.Ticket = idticket;
+            ViewBag.UsuarioId = clienteId;
 
             var archivosAdjuntos = (from t in _ticketsDbContext.ticket
                                     join a in _ticketsDbContext.archivosAdjuntos on t.ticketId equals a.ticketId
@@ -128,6 +132,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                    where com.ticketId == idticket
                                    select new ActividadDTO
                                    {
+                                       UsuarioId = u.usuarioId,
                                        Usuario = u.nombre,
                                        Fecha = com.fecha,
                                        Tipo = "Comentario",
@@ -140,6 +145,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                     where he.ticketId == idticket
                                     select new ActividadDTO
                                     {
+                                        UsuarioId = u.usuarioId,
                                         Usuario = u.nombre,
                                         Fecha = he.fechaNuevo,
                                         Tipo = "Cambio de Estado",
@@ -150,7 +156,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             .OrderBy(a => a.Fecha)
             .ToList();
 
-            ViewData["Actividad"] = actividadCompleta;
+            ViewBag.Actividad = actividadCompleta;
             ViewData["ArchivosAdjuntos"] = archivosAdjuntos;
 
 

@@ -94,7 +94,7 @@
                                 <div class="state-form-group">
                                     <label class="state-form-label">Modificar estado</label>
                                     <div class="state-form-controls">
-                                        @Html.DropDownList("estadoId", ViewData["Estados"] as List<SelectListItem>, "En proceso", new { @class = "state-select" })
+                                        @Html.DropDownList("estadoId", ViewData["Estados"] as List<SelectListItem>, new { @class = "state-select" })
                                         <input type="hidden" name="id" value="@ViewBag.ID" />
                                         <button type="submit" class="btn-primary-custom">Guardar estado</button>
                                     </div>
@@ -165,39 +165,74 @@
                         </div>
                     }
 
-                    <div class="comments-timeline">
-                        @foreach (var item in (IEnumerable<dynamic>)ViewData["Actividad"])
-                        {
-                            <div class="timeline-item">
-                                <div class="timeline-marker">
-                                    @if (item.Tipo == "Cambio de Estado")
-                                    {
-                                        <span data-feather="settings"></span>
-                                    }
-                                    else
-                                    {
-                                        <span data-feather="message-square"></span>
-                                    }
-                                </div>
-                                <div class="timeline-content">
-                                    <div class="timeline-header">
-                                        @if (item.Tipo == "Cambio de Estado")
+                    <!-- Comentarios y Cambios de Estados-->
+                    <div class="tasks-section completed-section">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                                Actividad del Ticket
+                            </h2>
+                        </div>
+
+                        <div class="tasks-grid">
+                            <div class="task-card" style="grid-column: 1 / -1; max-width: none;">
+                                <div class="task-content">
+
+
+                                    <!-- Timeline de comentarios y actividades -->
+                                    <div class="comments-timeline">
+                                        @if (ViewBag.Actividad != null && ViewBag.Actividad.Count > 0)
                                         {
-                                            <span class="timeline-author">Modificado por: @item.Usuario</span>
+                                            @foreach (var actividad in ViewBag.Actividad)
+                                            {
+                                                <div class="timeline-item @(actividad.UsuarioId == ViewBag.UsuarioId ? "timeline-item-own" : "timeline-item-other")">
+                                                    <div class="timeline-avatar">
+                                                        <div class="avatar">
+                                                            @actividad.Usuario.Substring(0, 1).ToUpper()
+                                                        </div>
+                                                    </div>
+                                                    <div class="timeline-content">
+                                                        <div class="comment-header">
+                                                            <span class="comment-author">@actividad.Usuario</span>
+                                                            <span class="comment-date">@actividad.Fecha.ToString("dd/MM/yyyy HH:mm")</span>
+                                                            <span class="activity-type @(actividad.Tipo == "Comentario" ? "comment-type" : "status-type")">
+                                                                @actividad.Tipo
+                                                            </span>
+                                                        </div>
+                                                        <div class="comment-body">
+                                                            <p>@actividad.Detalle</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
                                         }
                                         else
                                         {
-                                            <span class="timeline-author">Comentario de: @item.Usuario</span>
+                                            <div class="empty-state">
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                                </svg>
+                                                <p>No hay actividad aún</p>
+                                            </div>
                                         }
-                                        <span class="timeline-date">@item.Fecha.ToString("dd/MM/yyyy HH:mm")</span>
+
+
+
+
                                     </div>
-                                    <div class="timeline-body">
-                                        <p>@item.Detalle</p>
-                                    </div>
+
                                 </div>
+
                             </div>
-                        }
+
+
+
+                        </div>
                     </div>
+
+                   
                 </div>
             </div>
 
@@ -602,82 +637,131 @@
             box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
         }
 
-    /* Timeline */
+    /* Timeline de comentarios */
     .comments-timeline {
         position: relative;
     }
 
     .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
         display: flex;
         gap: 1rem;
-        margin-bottom: 2rem;
-        position: relative;
     }
 
-        .timeline-item:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            left: 20px;
-            top: 44px;
-            bottom: -2rem;
-            width: 2px;
-            background: var(--border-color);
-        }
+    .timeline-item-own {
+        flex-direction: row-reverse;
+    }
 
-    .timeline-marker {
+    .timeline-avatar {
         flex-shrink: 0;
+    }
+
+    .avatar {
         width: 40px;
         height: 40px;
-        background: var(--primary-color);
         border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
         display: flex;
         align-items: center;
         justify-content: center;
-        position: relative;
-        z-index: 1;
+        font-weight: 600;
+        font-size: 1rem;
     }
 
-        .timeline-marker svg {
-            width: 18px;
-            height: 18px;
-            color: white;
-        }
+    .timeline-item-own .avatar {
+        background: var(--success-color);
+    }
 
     .timeline-content {
         flex: 1;
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        overflow: hidden;
+        max-width: 70%;
     }
 
-    .timeline-header {
-        padding: 1rem 1.5rem;
-        background: var(--light-gray);
-        border-bottom: 1px solid var(--border-color);
+    .timeline-item-own .timeline-content {
+        text-align: right;
+    }
+
+    .comment-header {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
     }
 
-    .timeline-author {
-        font-weight: 500;
+    .timeline-item-own .comment-header {
+        justify-content: flex-end;
+    }
+
+    .comment-author {
+        font-weight: 600;
         color: var(--text-primary);
+        font-size: 0.875rem;
     }
 
-    .timeline-date {
-        font-size: 0.875rem;
+    .comment-date {
+        font-size: 0.75rem;
         color: var(--text-secondary);
     }
 
-    .timeline-body {
-        padding: 1.5rem;
+    .comment-body {
+        background: white;
+        padding: 1rem 1.25rem;
+        border-radius: 1rem;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        position: relative;
     }
 
-        .timeline-body p {
+    .timeline-item-own .comment-body {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .comment-body::before {
+        content: '';
+        position: absolute;
+        top: 1rem;
+        left: -8px;
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-right: 8px solid white;
+    }
+
+    .timeline-item-own .comment-body::before {
+        left: auto;
+        right: -8px;
+        border-right: none;
+        border-left: 8px solid var(--primary-color);
+    }
+
+    .comment-body p {
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* Estado vacío */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 2rem;
+        text-align: center;
+        color: var(--text-secondary);
+    }
+
+        .empty-state svg {
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
             margin: 0;
-            color: var(--text-primary);
-            line-height: 1.6;
+            font-size: 1rem;
         }
 
     /* Action Buttons */
@@ -686,6 +770,157 @@
         padding-top: 2rem;
         border-top: 1px solid var(--border-color);
     }
+    /* extras*/
 
-   
+    .activity-timeline {
+        position: relative;
+        padding: 0 1rem;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+        display: flex;
+    }
+
+    .timeline-item-left {
+        justify-content: flex-start;
+        text-align: left;
+    }
+
+    .timeline-item-right {
+        justify-content: flex-end;
+        text-align: right;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        top: 0;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .timeline-item-left .timeline-marker {
+        left: -1rem;
+    }
+
+    .timeline-item-right .timeline-marker {
+        right: -1rem;
+    }
+
+    .marker-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+    }
+
+        .marker-icon svg {
+            width: 0.75rem;
+            height: 0.75rem;
+        }
+
+    .comment-marker {
+        background: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+    .status-marker {
+        background: var(--success-light);
+        color: var(--success-color);
+    }
+
+    .timeline-content {
+        max-width: 70%;
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+    }
+
+    .timeline-item-right .timeline-content {
+        background: var(--primary-light);
+        color: var(--text-primary);
+    }
+
+    .activity-header {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .timeline-item-right .activity-header {
+        justify-content: flex-end;
+    }
+
+    .activity-user {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+    }
+
+    .activity-date {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .activity-type {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .comment-type {
+        background: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+    .status-type {
+        background: var(--success-light);
+        color: var(--success-color);
+    }
+
+    .timeline-item-right .activity-type {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .activity-body p {
+        margin: 0;
+        line-height: 1.5;
+        color: var(--text-primary);
+    }
+
+    /* Flechas de los globos de diálogo */
+    .timeline-content::after {
+        content: '';
+        position: absolute;
+        top: 1rem;
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+    }
+
+    .timeline-item-left .timeline-content::after {
+        left: -8px;
+        border-right: 8px solid white;
+    }
+
+    .timeline-item-right .timeline-content::after {
+        right: -8px;
+        border-left: 8px solid var(--primary-light);
+    }
 </style>
