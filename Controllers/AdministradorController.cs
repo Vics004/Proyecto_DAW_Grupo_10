@@ -123,30 +123,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             return View(user);
         }
 
-        [HttpPost]
-        public IActionResult Delete(int id)
-        {
-            var user = _ticketsDbContext.usuario.Find(id);
-            if (user != null)
-            {
-                _ticketsDbContext.usuario.Remove(user);
-                _ticketsDbContext.SaveChanges();
-            }
-            return RedirectToAction("Usuarios");
-        }
-
-
-        [HttpPost]
-        public IActionResult DeleteConfirmed(int id)
-        {
-            var user = _ticketsDbContext.usuario.Find(id);
-            if (user != null)
-            {
-                _ticketsDbContext.usuario.Remove(user);
-                _ticketsDbContext.SaveChanges();
-            }
-            return RedirectToAction("Usuarios");
-        }
+        
 
 
         //Otros CRUDS
@@ -251,24 +228,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             return RedirectToAction("ListadoProblemas", new { busqueda = busqueda });
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult EliminarProblema(int problemaId, string busqueda = "")
-        {
-            var problema = _ticketsDbContext.problema.FirstOrDefault(p => p.problemaId == problemaId);
-            if (problema == null)
-            {
-                TempData["Error"] = "No se encontró el problema para eliminar.";
-                return RedirectToAction("ListadoProblemas", new { busqueda });
-            }
-
-            _ticketsDbContext.problema.Remove(problema);
-            _ticketsDbContext.SaveChanges();
-
-            TempData["Mensaje"] = "Problema eliminado correctamente.";
-            return RedirectToAction("ListadoProblemas", new { busqueda });
-        }
-
+       
 
         /*Categorias*/
         public IActionResult ListadoCategorias(string busqueda, int? editarId = null)
@@ -467,24 +427,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             return RedirectToAction("ListadoRoles", new { busqueda = busqueda });
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult EliminarRol(int rolId, string busqueda = "")
-        {
-            var rol = _ticketsDbContext.rol.FirstOrDefault(r => r.rolId == rolId);
-            if (rol == null)
-            {
-                TempData["Error"] = "No se encontró el rol para eliminar.";
-                return RedirectToAction("ListadoRoles", new { busqueda });
-            }
-
-            _ticketsDbContext.rol.Remove(rol);
-            _ticketsDbContext.SaveChanges();
-
-            TempData["Mensaje"] = "Rol eliminado correctamente.";
-            return RedirectToAction("ListadoRoles", new { busqueda });
-        }
-
+       
 
     }
 }
