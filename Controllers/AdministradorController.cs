@@ -123,30 +123,20 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             return View(user);
         }
 
-        [HttpPost]
-        public IActionResult Delete(int id)
+        /*[HttpPost]
+        public async Task<IActionResult> ToggleActivo(int id)
         {
-            var user = _ticketsDbContext.usuario.Find(id);
-            if (user != null)
+            var usuario = await _ticketsDbContext.usuario.FindAsync(id);
+            if (usuario == null)
             {
-                _ticketsDbContext.usuario.Remove(user);
-                _ticketsDbContext.SaveChanges();
+                return NotFound();
             }
-            return RedirectToAction("Usuarios");
-        }
 
+            usuario.activo = !usuario.activo;
+            await _ticketsDbContext.SaveChangesAsync();
 
-        [HttpPost]
-        public IActionResult DeleteConfirmed(int id)
-        {
-            var user = _ticketsDbContext.usuario.Find(id);
-            if (user != null)
-            {
-                _ticketsDbContext.usuario.Remove(user);
-                _ticketsDbContext.SaveChanges();
-            }
-            return RedirectToAction("Usuarios");
-        }
+            return RedirectToAction(nameof(Usuarios));
+        }*/
 
 
         //Otros CRUDS

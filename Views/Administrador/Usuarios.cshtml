@@ -13,20 +13,42 @@
                 
             </div>
 
-            <!-- Filtro por tipo de usuario -->
-            <div class="mb-3">
-                <form method="get" asp-action="Usuarios" class="row g-3">
-                    <div class="col-md-4">
-                        <label for="tipoUsuario" class="form-label">Filtrar por tipo de usuario:</label>
-                        <select name="tipoUsuario" class="form-select" onchange="this.form.submit()">
-                            @foreach (var item in ViewBag.TiposUsuario as List<SelectListItem>)
-                            {
-                                <option value="@item.Value" selected="@(Context.Request.Query["tipoUsuario"] == item.Value)">@item.Text</option>
-                            }
-                        </select>
+            <div class="row mb-3">
+                <!-- Barra de búsqueda dinámica -->
+                <div class="col-md-8">
+                    <div class="search-container">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" id="liveSearchInput" class="form-control form-control-lg"
+                                   placeholder="Buscar usuarios... (ID, nombre, correo, teléfono, empresa...)"
+                                   autocomplete="off">
+                            
+                        </div>
+                        <div class="search-info mt-2">
+                            
+                        </div>
                     </div>
-                </form>
+                </div>
+
+                <!-- Filtro por tipo de usuario -->
+                <div class="mb-3">
+                    <form method="get" asp-action="Usuarios" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="tipoUsuario" class="form-label">Filtrar por tipo de usuario:</label>
+                            <select name="tipoUsuario" class="form-select" onchange="this.form.submit()">
+                                @foreach (var item in ViewBag.TiposUsuario as List<SelectListItem>)
+                                {
+                                    <option value="@item.Value" selected="@(Context.Request.Query["tipoUsuario"] == item.Value)">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </form>
+                </div>
             </div>
+
+            
             <a asp-action="Create" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearUsuarioModal">Crear Usuario</a>
 
             <div class="table-responsive">
@@ -84,10 +106,7 @@
                                             onclick="cargarDatosModal(this)">
                                         Editar
                                     </button>
-                                    <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('¿Deseas eliminar este usuario?');">
-                                        <input type="hidden" name="id" value="@usuario.usuarioId" />
-                                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                                    </form>
+                                    
                                 </td>
                             </tr>
                         }
@@ -262,6 +281,26 @@
 
 @section Scripts {
     <script>
+        //para la barra de busqueda
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('liveSearchInput');
+            const rows = document.querySelectorAll('tbody tr');
+            
+            searchInput.addEventListener('input', function() {
+                const term = this.value.toLowerCase();
+                
+                rows.forEach(row => {
+                    const text = Array.from(row.cells)
+                        .slice(0, 8) // ID(0), Nombre(1), Correo(2), Teléfono(3), Empresa(7)
+                        .map(cell => cell.textContent.toLowerCase())
+                        .join(' ');
+                    row.style.display = text.includes(term) ? '' : 'none';
+                });
+            });
+            
+        });
+
+
         function cargarDatosModal(btn) {
             document.getElementById('editUsuarioId').value = btn.dataset.id;
             document.getElementById('editNombre').value = btn.dataset.nombre;
@@ -326,5 +365,6 @@
                 toggleCamposExterno(tipoUsuarioSelect.value);
             }
         });
+        
     </script>
 }
