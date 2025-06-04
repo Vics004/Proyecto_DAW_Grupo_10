@@ -1,57 +1,167 @@
 ﻿@{
     ViewBag.Title = "Agregar nuevo problema";
 }
-
-<h2 style="margin-bottom:20px" class="dashboard-title">@ViewBag.Title</h2>
-
-<form asp-action="CrearProblema" method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" name="busqueda" value="@ViewBag.Busqueda" />
-
-    <div class="form-group d-flex align-items-center mb-3">
-        <label class="me-3 mb-0 form-label-custom">Categoría:</label>
-        <select name="categoriaId" class="form-control form-text-custom" required>
-            @foreach (var categoria in ViewBag.Categorias)
-            {
-                <option value="@categoria.categoriaId">@categoria.nombre</option>
-            }
-        </select>
+<div class="main-content">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">@ViewBag.Title</h1>
     </div>
 
-    <div class="form-group d-flex align-items-center mb-3">
-        <label class="me-3 mb-0 form-label-custom">Problema:</label>
-        <input type="text" name="nombre" class="form-control form-text-custom"
-               placeholder="Ingrese el nombre del problema" required />
+    <div class="tasks-section pending-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Nuevo Problema
+            </h2>
+        </div>
+
+        <div class="tasks-grid">
+            <div class="task-card pending-card" style="grid-column: 1 / -1; max-width: none;">
+                <form asp-action="CrearProblema" method="post" class="task-content">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="busqueda" value="@ViewBag.Busqueda" />
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Categoría</label>
+                            <select name="categoriaId" class="form-control" required>
+                                @foreach (var categoria in ViewBag.Categorias)
+                                {
+                                    <option value="@categoria.categoriaId">@categoria.nombre</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Nombre del problema</label>
+                            <input type="text" name="nombre" class="form-control"
+                                   placeholder="Ingrese el nombre del problema" required />
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="@Url.Action("ListadoProblemas")" class="btn btn-secondary">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn-view">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
-
-
-    <button type="submit" class="btn btn-primary" style="margin-top: 30px">Guardar</button>
-    <a href="@Url.Action("ListadoProblemas")" class="btn btn-secondary" style="margin-top: 30px">Cancelar</a>
-</form>
+</div>
 
 <style>
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .form-control, .form-select {
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background-color: white;
+    }
+
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-control:hover, .form-select:hover {
+            border-color: var(--primary-dark);
+        }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .btn-secondary {
+        background: var(--medium-gray);
+        color: var(--text-secondary);
+        border: 2px solid var(--border-color);
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+            text-decoration: none;
+        }
+
+    .btn-view {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn-view:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
     .dashboard-title {
-        font-size: 2.5rem;
+        font-size: 2rem;
         font-weight: 700;
         color: var(--text-primary);
         margin: 0 0 0.5rem;
     }
 
-    .form-label-custom {
-        width: 100px;
-        font-weight: 600;
-        color: #495057;
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .form-text-custom {
-        max-width: 300px;
-        font-weight: 600;
-        color: #495057;
-        font-size: 14px;
-        letter-spacing: 0.5px;
+    .dashboard-subtitle {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        margin: 0;
     }
 </style>

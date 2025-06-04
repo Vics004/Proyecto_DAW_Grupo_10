@@ -18,8 +18,8 @@
         </div>
 
         <a href="@Url.Action("CrearRol")" class="btn btn-primary"
-           style="padding: 8px 18px; border-radius: 25px; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
-            <i class="fa fa-plus"></i> Agregar nuevo rol
+           style="background-color: var(--primary-color); color: white; padding: 8px 18px; border-radius: 25px; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+            <i class="fa fa-plus"></i> Agregar un nuevo rol
         </a>
     </form>
 
@@ -67,20 +67,23 @@
                             <td>@item.nombre</td>
                             <td>@item.Categoria</td>
                             <td>
-                                <a href="#" class="btn-editar"
-                                   onclick="event.preventDefault(); abrirModalEditar(@item.rolId, '@item.nombre', @item.categoriaId)">
-                                    Editar
-                                </a>
+                                <div class="col-md-4 d-flex align-items-end gap-2">
+                                  
+                                    <a href="#" class="btn-view" style="flex: 1;"
+                                       onclick="event.preventDefault(); abrirModalEditar(@item.rolId, '@item.nombre', @item.categoriaId)">
+                                        Editar
+                                    </a>
 
-
-                                <form method="post" asp-action="EliminarRol" style="display:inline;" onsubmit="return confirm('¿Eliminar este rol?');">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="rolId" value="@item.rolId" />
-                                    <input type="hidden" name="busqueda" value="@ViewBag.Busqueda" />
-                                    <button type="submit" class="btn-eliminar">
-                                        Eliminar
-                                    </button>
-                                </form>
+                                  
+                                    <form method="post" asp-action="EliminarRol" style="display:inline; flex: 1;" onsubmit="return confirm('¿Eliminar este rol?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="rolId" value="@item.rolId" />
+                                        <input type="hidden" name="busqueda" value="@ViewBag.Busqueda" />
+                                        <button type="submit" class="btn-view" style="background: var(--secondary-color); width: 100%;">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -91,25 +94,34 @@
     </div>
 </div>
 
-
 <div id="modal-editar" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="cerrarModalEditar()">&times;</span>
+    <div class="modal-content" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; padding: 2rem 2.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 600px; margin: auto;">
 
+        <span class="close" onclick="cerrarModalEditar()" style="font-size: 1.5rem; float: right; cursor: pointer;">&times;</span>
 
-        <form method="post" asp-action="ActualizarRol" id="formEditarRol">
+        <h3 class="profile-section-title mb-4" style="color: var(--primary-color); font-weight: bold; display: flex; align-items: center;">
+            <i class="fas fa-user-tag" style="margin-right: 0.5rem;"></i>
+            Editar Rol
+        </h3>
+
+        <form method="post" asp-action="ActualizarRol" id="formEditarRol" class="profile-form">
             @Html.AntiForgeryToken()
-
             <input type="hidden" name="busqueda" value="@ViewBag.Busqueda" />
 
-            <div class="form-group d-flex align-items-center mb-3">
-                <label for="rolId" class="form-label-custom me-3 mb-0">ID:</label>
-                <input type="text" id="rolId" name="rolId" class="form-control form-text-custom" readonly />
+            <div class="profile-field mb-4">
+                <label for="rolId" class="profile-label" style="font-weight: 500;">
+                    <i class="fas fa-id-card" style="margin-right: 0.5rem;"></i>
+                    ID Rol
+                </label>
+                <input type="text" id="rolId" name="rolId" class="form-control profile-input" readonly />
             </div>
 
-            <div class="form-group d-flex align-items-center mb-3">
-                <label for="categoriaId" class="form-label-custom me-3 mb-0">Categoría:</label>
-                <select id="categoriaId" name="categoriaId" class="form-control form-text-custom">
+            <div class="profile-field mb-4">
+                <label for="categoriaId" class="profile-label" style="font-weight: 500;">
+                    <i class="fas fa-list-alt" style="margin-right: 0.5rem;"></i>
+                    Categoría
+                </label>
+                <select id="categoriaId" name="categoriaId" class="form-control profile-input">
                     @foreach (var categoria in ViewBag.Categorias)
                     {
                         <option value="@categoria.categoriaId">@categoria.nombre</option>
@@ -117,19 +129,24 @@
                 </select>
             </div>
 
-            <div class="form-group d-flex align-items-center mb-3">
-                <label for="nombre" class="form-label-custom me-3 mb-0">Rol:</label>
-                <input type="text" id="nombre" name="nombre" class="form-control form-text-custom" required />
+            <div class="profile-field mb-4">
+                <label for="nombre" class="profile-label" style="font-weight: 500;">
+                    <i class="fas fa-user-shield" style="margin-right: 0.5rem;"></i>
+                    Nombre del Rol
+                </label>
+                <input type="text" id="nombre" name="nombre" class="form-control profile-input" required placeholder="Ej. Administrador" />
             </div>
 
-
-            <button style="margin-top: 60px" type="submit" class="btn btn-primary mt-3">Guardar cambios</button>
+            <div class="profile-actions mt-5 d-flex justify-content-end gap-3">
+                <button type="submit" class="btn btn-primary mt-3"
+                        style="margin-top: 60px; background-color: var(--primary-color); color: white; border: none;">
+                    <i class="fas fa-save" style="margin-right: 0.5rem;"></i>
+                    Guardar cambios
+                </button>
+            </div>
         </form>
-
     </div>
 </div>
-
-
 
 <style>
         :root {
