@@ -18,7 +18,7 @@
         </div>
 
         <a href="@Url.Action("CrearProblema")" class="btn btn-primary"
-           style="padding: 8px 18px; border-radius: 25px; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+           style="background-color: var(--primary-color); color: white; padding: 8px 18px; border-radius: 25px; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
             <i class="fa fa-plus"></i> Agregar nuevo problema
         </a>
     </form>
@@ -47,69 +47,82 @@
     </div>
 
 
-
     <div class="table-container">
-        <div class="tasks-section">
-            <table class="table modern-table">
-                <thead>
+    <div class="tasks-section">
+        <table class="table modern-table">
+            <thead>
+                <tr>
+                    <th class="col-2">ID</th>
+                    <th class="col-4">Problema</th>
+                    <th class="col-3">Categoría</th>
+                    <th class="col-3">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in ViewBag.Problemas)
+                {
                     <tr>
-                        <th>ID</th>
-                        <th>Problema</th>
-                        <th>Categoría</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in ViewBag.Problemas)
-                    {
-                        <tr>
-                            <td class="id-column">@item.problemaId</td>
-                            <td>@item.nombre</td>
-                            <td>@item.Categoria</td>
-                            <td>
-                                <a href="#" class="btn-editar"
+                        <td class="col-2 id-column">@item.problemaId</td>
+                        <td class="col-4">@item.nombre</td>
+                        <td class="col-3">@item.Categoria</td>
+                        <td class="col-3">
+                            <div class="d-flex align-items-end gap-2">
+                               
+                                <a href="#" class="btn-view d-flex align-items-center justify-content-center"
+                                   style="width: 80px;" 
                                    onclick="event.preventDefault(); abrirModalEditar(@item.problemaId, '@item.nombre', @item.categoriaId)">
                                     Editar
                                 </a>
 
-
-                                <form method="post" asp-action="EliminarProblema" style="display:inline;" onsubmit="return confirm('¿Eliminar este problema?');">
+                                
+                                <form method="post" asp-action="EliminarProblema" style="display:inline;"
+                                      onsubmit="return confirm('¿Eliminar este problema?');">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="problemaId" value="@item.problemaId" />
                                     <input type="hidden" name="busqueda" value="@ViewBag.Busqueda" />
-                                    <button type="submit" class="btn-eliminar">
+                                    <button type="submit" class="btn-view d-flex align-items-center justify-content-center"
+                                            style="width: 80px; background: var(--secondary-color);">
                                         Eliminar
                                     </button>
                                 </form>
-                            </td>
-                        </tr>
-                    }
-
-                </tbody>
-            </table>
-        </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
 
-
 <div id="modal-editar" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="cerrarModalEditar()">&times;</span>
+    <div class="modal-content" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; padding: 2rem 2.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 600px; margin: auto;">
 
+        <span class="close" onclick="cerrarModalEditar()" style="font-size: 1.5rem; float: right; cursor: pointer;">&times;</span>
 
-        <form method="post" asp-action="ActualizarProblema" id="formEditarProblema">
+        <h3 class="profile-section-title mb-4" style="color: var(--primary-color); font-weight: bold; display: flex; align-items: center;">
+            <i class="fas fa-edit" style="margin-right: 0.5rem;"></i>
+            Editar Problema
+        </h3>
+
+        <form method="post" asp-action="ActualizarProblema" id="formEditarProblema" class="profile-form">
             @Html.AntiForgeryToken()
 
             <input type="hidden" name="busqueda" value="@ViewBag.Busqueda" />
 
-            <div class="form-group d-flex align-items-center mb-3">
-                <label for="problemaId" class="form-label-custom me-3 mb-0">ID:</label>
-                <input type="text" id="problemaId" name="problemaId" class="form-control form-text-custom" readonly />
+            <div class="profile-field mb-4">
+                <label for="problemaId" class="profile-label" style="font-weight: 500;">
+                    <i class="fas fa-id-badge" style="margin-right: 0.5rem;"></i>
+                    ID
+                </label>
+                <input type="text" id="problemaId" name="problemaId" class="form-control profile-input" readonly />
             </div>
 
-            <div class="form-group d-flex align-items-center mb-3">
-                <label for="categoriaId" class="form-label-custom me-3 mb-0">Categoría:</label>
-                <select id="categoriaId" name="categoriaId" class="form-control form-text-custom">
+            <div class="profile-field mb-4">
+                <label for="categoriaId" class="profile-label" style="font-weight: 500;">
+                    <i class="fas fa-tag" style="margin-right: 0.5rem;"></i>
+                    Categoría
+                </label>
+                <select id="categoriaId" name="categoriaId" class="form-control profile-input">
                     @foreach (var categoria in ViewBag.Categorias)
                     {
                         <option value="@categoria.categoriaId">@categoria.nombre</option>
@@ -117,78 +130,83 @@
                 </select>
             </div>
 
-            <div class="form-group d-flex align-items-center mb-3">
-                <label for="nombre" class="form-label-custom me-3 mb-0">Problema:</label>
-                <input type="text" id="nombre" name="nombre" class="form-control form-text-custom" required />
+            <div class="profile-field mb-4">
+                <label for="nombre" class="profile-label" style="font-weight: 500;">
+                    <i class="fas fa-question-circle" style="margin-right: 0.5rem;"></i>
+                    Problema
+                </label>
+                <input type="text" id="nombre" name="nombre" class="form-control profile-input" required placeholder="Ej. No enciende" />
             </div>
 
-
-            <button style="margin-top: 60px" type="submit" class="btn btn-primary mt-3">Guardar cambios</button>
+            <div class="profile-actions mt-5 d-flex justify-content-end gap-3">
+                <button type="submit" class="btn btn-primary mt-3"
+                        style="margin-top: 60px; background-color: var(--primary-color); color: white; border: none;">
+                    Guardar cambios
+                </button>
+            </div>
         </form>
-
     </div>
 </div>
 
 
 
 <style>
-        :root {
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            --pending-bg: #dbeafe;
-            --pending-accent: #3b82f6;
-        }
+    <style >
+    :root {
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --pending-bg: #dbeafe;
+        --pending-accent: #3b82f6;
+    }
 
-        .dashboard-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin: 0 0 0.5rem;
-        }
+    .dashboard-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem;
+    }
 
-        .form-control.form-text-custom {
-            margin-top: 1.5rem; /* más espacio arriba dentro del input */
-            margin-bottom: 1.5rem; /* más espacio abajo dentro del input */
-
-        }
-
-
-        .form-label-custom {
-            width: 100px;
-            font-weight: 600;
-            color: #495057;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-
-        }
-
-        .form-text-custom {
-            max-width: 300px;
-            font-weight: 500;
-            color: #495057;
-            font-size: 14px;
-            border-radius: 6px;
-        }
+    .form-control.form-text-custom {
+        margin-top: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
 
 
-        .tasks-section {
-            background: linear-gradient(135deg, var(--pending-bg) 0%, #bfdbfe 100%);
-            border: 2px solid var(--pending-accent);
-            border-radius: 1.5rem;
-            overflow: hidden;
-            box-shadow: var(--shadow-lg);
-            padding: 0px;
-        }
+    .form-label-custom {
+        width: 100px;
+        font-weight: 600;
+        color: #495057;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
 
-        .modern-table {
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: none;
-            border: none;
-            background: white;
-            margin: 0;
-            width: 100%;
-        }
+    .form-text-custom {
+        max-width: 300px;
+        font-weight: 500;
+        color: #495057;
+        font-size: 14px;
+        border-radius: 6px;
+    }
+
+
+    .tasks-section {
+        background: linear-gradient(135deg, var(--pending-bg) 0%, #bfdbfe 100%);
+        border: 2px solid var(--pending-accent);
+        border-radius: 1.5rem;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        padding: 0px;
+    }
+
+    .modern-table {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: none;
+        border: none;
+        background: white;
+        margin: 0;
+        width: 100%;
+    }
 
         .modern-table thead th {
             background-color: #f8f9fa;
@@ -217,19 +235,19 @@
             transition: background-color 0.2s ease;
         }
 
-        .btn-editar {
-            background-color: #6c757d;
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-            text-decoration: none;
-            display: inline-block;
-            margin-right: 8px;
-            transition: all 0.2s ease;
-        }
+    .btn-editar {
+        background-color: #6c757d;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        margin-right: 8px;
+        transition: all 0.2s ease;
+    }
 
         .btn-editar:hover {
             background-color: #5a6268;
@@ -238,18 +256,18 @@
             transform: translateY(-1px);
         }
 
-        .btn-eliminar {
-            background-color: #007bff;
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.2s ease;
-        }
+    .btn-eliminar {
+        background-color: #007bff;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s ease;
+    }
 
         .btn-eliminar:hover {
             background-color: #0056b3;
@@ -258,23 +276,22 @@
             transform: translateY(-1px);
         }
 
-        .table-container {
-            padding: 0;
-            margin-top: 20px;
-        }
+    .table-container {
+        padding: 0;
+        margin-top: 20px;
+    }
 
-        .modern-table .id-column {
-            font-weight: 600;
-            color: #495057;
-            width: 80px;
-        }
+    .modern-table .id-column {
+        font-weight: 600;
+        color: #495057;
+        width: 80px;
+    }
 
-        .search-container {
-            position: relative;
-            width: 100%;
-            max-width: 815px;
-
-        }
+    .search-container {
+        position: relative;
+        width: 100%;
+        max-width: 815px;
+    }
 
         .search-container input {
             width: 100%;
@@ -293,90 +310,88 @@
             pointer-events: none;
         }
 
-       
-        .modal {
-            display: none; /* Oculto por defecto */
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
-            padding: 40px 20px; 
-            box-sizing: border-box;
-        }
 
-        /* Contenido del modal */
-        .modal-content {
-            background-color: #fff;
-            margin: auto;
-            padding: 30px 40px; 
-            border-radius: 15px; 
-            max-width: 500px;
-            box-sizing: border-box;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-       
-        .form-row {
-            margin-bottom: 25px; 
-            display: flex;
-            flex-direction: column;
-        }
-
-           
-            .form-row label {
-                margin-bottom: 8px;
-                font-weight: 600;
-            }
-
-        
-            .form-row input[type="text"],
-            .form-row select {
-                padding: 10px 12px;
-                font-size: 1rem;
-                border: 1px solid #ccc;
-                border-radius: 8px;
-                box-sizing: border-box;
-            }
-
-       
-        #formEditarProblema button[type="submit"] {
-            display: block;
-            margin: 30px auto 0 auto; 
-            padding: 12px 30px;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 25px; 
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-            #formEditarProblema button[type="submit"]:hover {
-                background-color: #0056b3;
-            }
-
-        
-            .close {
-      position: absolute;
-      top: 15px;
-     right: 15px;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-      user-select: none;
-      color: #333;
-    }
-
-    .close:hover {
-      color: #000;
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+        padding: 40px 20px;
+        box-sizing: border-box;
     }
 
 
+    .modal-content {
+        background-color: #fff;
+        margin: auto;
+        padding: 30px 40px;
+        border-radius: 15px;
+        max-width: 500px;
+        box-sizing: border-box;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+
+    .form-row {
+        margin-bottom: 25px;
+        display: flex;
+        flex-direction: column;
+    }
+
+
+        .form-row label {
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+
+        .form-row input[type="text"],
+        .form-row select {
+            padding: 10px 12px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+
+    #formEditarProblema button[type="submit"] {
+        display: block;
+        margin: 30px auto 0 auto;
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        border: none;
+        border-radius: 25px;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        #formEditarProblema button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+
+    .close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        user-select: none;
+        color: #333;
+    }
+
+        .close:hover {
+            color: #000;
+        }
 
 </style>
 @section Scripts {

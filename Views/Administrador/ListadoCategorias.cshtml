@@ -18,9 +18,12 @@
         </div>
 
         <a href="@Url.Action("CrearCategoria")" class="btn btn-primary"
-           style="padding: 8px 18px; border-radius: 25px; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+           style="background-color: var(--primary-color); color: white; padding: 8px 18px; border-radius: 25px; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
             <i class="fa fa-plus"></i> Agregar nueva categoría
         </a>
+
+
+
     </form>
 
 
@@ -47,130 +50,142 @@
     </div>
 
 
-
     <div class="table-container">
         <div class="tasks-section">
             <table class="table modern-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Categoria</th>
-                        <th>Acciones</th>
+                        <th class="col-2">ID</th>
+                        <th class="col-6">Categoria</th>
+                        <th class="col-4">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in ViewBag.Categorias)
                     {
                         <tr>
-                            <td class="id-column">@item.categoriaId</td>
-                            <td>@item.Categoria</td>
-                            <td>
-                                <a href="#" class="btn-editar"
-                                   onclick="event.preventDefault(); abrirModalEditar(@item.categoriaId, '@item.Categoria')">
-                                    Editar
-                                </a>
-
-
+                            <td class="col-2 id-column">@item.categoriaId</td> 
+                            <td class="col-6">@item.Categoria</td> 
+                            <td class="col-4">
                                
+                                <div class="d-flex align-items-end gap-2">
+                                    <a href="#" class="btn-view d-flex align-items-center justify-content-center"
+                                       style="width: 100px;"
+                                       onclick="event.preventDefault(); abrirModalEditar(@item.categoriaId, '@item.Categoria')">
+                                        Editar
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     }
-
                 </tbody>
             </table>
         </div>
     </div>
-</div>
 
 
 <div id="modal-editar" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="cerrarModalEditar()">&times;</span>
+    <div class="modal-content" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; padding: 2rem 2.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 600px; margin: auto;">
 
+        <span class="close" onclick="cerrarModalEditar()" style="font-size: 1.5rem; float: right; cursor: pointer;">&times;</span>
 
-        <form method="post" asp-action="ActualizarCategoria" id="formEditarCategoria">
+        <h3 class="profile-section-title mb-4" style="color: var(--primary-color); font-weight: bold; display: flex; align-items: center;">
+            <i class="fas fa-edit" style="margin-right: 0.5rem;"></i>
+            Editar Categoría
+        </h3>
+
+        <form method="post" asp-action="ActualizarCategoria" id="formEditarCategoria" class="profile-form">
             @Html.AntiForgeryToken()
 
             <input type="hidden" name="busqueda" value="@ViewBag.Busqueda" />
 
-            <div class="form-group d-flex align-items-center mb-3">
-                <label for="categoriaId" class="form-label-custom me-3 mb-0">ID:</label>
-                <input type="text" id="categoriaId" name="categoriaId" class="form-control form-text-custom" readonly />
+            <div class="profile-field mb-4">
+                <label for="categoriaId" class="profile-label" style="font-weight: 500;">
+                    <i class="fas fa-id-badge" style="margin-right: 0.5rem;"></i>
+                    ID Categoría
+                </label>
+                <input type="text" id="categoriaId" name="categoriaId" class="form-control profile-input" readonly />
             </div>
 
-
-            <div class="form-group d-flex align-items-center mb-3">
-                <label for="nombre" class="form-label-custom me-3 mb-0">Categoría:</label>
-                <input type="text" id="nombre" name="nombre" class="form-control form-text-custom" required />
+            <div class="profile-field mb-4">
+                <label for="nombre" class="profile-label" style="font-weight: 500;">
+                    <i class="fas fa-tag" style="margin-right: 0.5rem;"></i>
+                    Nombre de la Categoría
+                </label>
+                <input type="text" id="nombre" name="nombre" class="form-control profile-input" required placeholder="Ej. Electrónica" />
             </div>
 
+            <div class="profile-actions mt-5 d-flex justify-content-end gap-3">
+                <button type="submit" class="btn btn-primary mt-3"
+                        style="margin-top: 60px; background-color: var(--primary-color); color: white; border: none;">
+                    Guardar cambios
+                </button>
+            </div>
 
-            <button style="margin-top: 60px" type="submit" class="btn btn-primary mt-3">Guardar cambios</button>
         </form>
-
     </div>
 </div>
 
 
 
+
 <style>
-        :root {
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            --pending-bg: #dbeafe;
-            --pending-accent: #3b82f6;
-        }
+    <style >
+    :root {
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --pending-bg: #dbeafe;
+        --pending-accent: #3b82f6;
+    }
 
-        .dashboard-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin: 0 0 0.5rem;
-        }
+    .dashboard-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem;
+    }
 
-        .form-control.form-text-custom {
-            margin-top: 1.5rem;
-            margin-bottom: 1.5rem;
-
-        }
-
-
-        .form-label-custom {
-            width: 100px;
-            font-weight: 600;
-            color: #495057;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-
-        }
-
-        .form-text-custom {
-            max-width: 300px;
-            font-weight: 500;
-            color: #495057;
-            font-size: 14px;
-            border-radius: 6px;
-        }
+    .form-control.form-text-custom {
+        margin-top: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
 
 
-        .tasks-section {
-            background: linear-gradient(135deg, var(--pending-bg) 0%, #bfdbfe 100%);
-            border: 2px solid var(--pending-accent);
-            border-radius: 1.5rem;
-            overflow: hidden;
-            box-shadow: var(--shadow-lg);
-            padding: 0px;
-        }
+    .form-label-custom {
+        width: 100px;
+        font-weight: 600;
+        color: #495057;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
 
-        .modern-table {
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: none;
-            border: none;
-            background: white;
-            margin: 0;
-            width: 100%;
-        }
+    .form-text-custom {
+        max-width: 300px;
+        font-weight: 500;
+        color: #495057;
+        font-size: 14px;
+        border-radius: 6px;
+    }
+
+
+    .tasks-section {
+        background: linear-gradient(135deg, var(--pending-bg) 0%, #bfdbfe 100%);
+        border: 2px solid var(--pending-accent);
+        border-radius: 1.5rem;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        padding: 0px;
+    }
+
+    .modern-table {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: none;
+        border: none;
+        background: white;
+        margin: 0;
+        width: 100%;
+    }
 
         .modern-table thead th {
             background-color: #f8f9fa;
@@ -199,19 +214,19 @@
             transition: background-color 0.2s ease;
         }
 
-        .btn-editar {
-            background-color: #6c757d;
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 500;
-            text-decoration: none;
-            display: inline-block;
-            margin-right: 8px;
-            transition: all 0.2s ease;
-        }
+    .btn-editar {
+        background-color: #6c757d;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        margin-right: 8px;
+        transition: all 0.2s ease;
+    }
 
         .btn-editar:hover {
             background-color: #5a6268;
@@ -220,25 +235,42 @@
             transform: translateY(-1px);
         }
 
-     
+    .btn-eliminar {
+        background-color: #007bff;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s ease;
+    }
 
-        .table-container {
-            padding: 0;
-            margin-top: 20px;
+        .btn-eliminar:hover {
+            background-color: #0056b3;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-1px);
         }
 
-        .modern-table .id-column {
-            font-weight: 600;
-            color: #495057;
-            width: 80px;
-        }
+    .table-container {
+        padding: 0;
+        margin-top: 20px;
+    }
 
-        .search-container {
-            position: relative;
-            width: 100%;
-            max-width: 815px;
+    .modern-table .id-column {
+        font-weight: 600;
+        color: #495057;
+        width: 80px;
+    }
 
-        }
+    .search-container {
+        position: relative;
+        width: 100%;
+        max-width: 815px;
+    }
 
         .search-container input {
             width: 100%;
@@ -257,89 +289,88 @@
             pointer-events: none;
         }
 
-      
-        .modal {
-            display: none; 
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
-            padding: 40px 20px; 
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+        padding: 40px 20px;
+        box-sizing: border-box;
+    }
+
+
+    .modal-content {
+        background-color: #fff;
+        margin: auto;
+        padding: 30px 40px;
+        border-radius: 15px;
+        max-width: 500px;
+        box-sizing: border-box;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+
+    .form-row {
+        margin-bottom: 25px;
+        display: flex;
+        flex-direction: column;
+    }
+
+
+        .form-row label {
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+
+        .form-row input[type="text"],
+        .form-row select {
+            padding: 10px 12px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
             box-sizing: border-box;
         }
 
-      
-        .modal-content {
-            background-color: #fff;
-            margin: auto;
-            padding: 30px 40px;
-            border-radius: 15px; 
-            max-width: 500px;
-            box-sizing: border-box;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
 
-        
-        .form-row {
-            margin-bottom: 25px; 
-            display: flex;
-            flex-direction: column;
-        }
-
-        
-            .form-row label {
-                margin-bottom: 8px;
-                font-weight: 600;
-            }
-
-           
-            .form-row input[type="text"],
-            .form-row select {
-                padding: 10px 12px;
-                font-size: 1rem;
-                border: 1px solid #ccc;
-                border-radius: 8px;
-                box-sizing: border-box;
-            }
-
-       
-        #formEditarCategoria button[type="submit"] {
-            display: block;
-            margin: 30px auto 0 auto; 
-            padding: 12px 30px;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 25px; 
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-            #formEditarCategoria button[type="submit"]:hover {
-                background-color: #0056b3;
-            }
-
-        
-            .close {
-      position: absolute;
-      top: 15px;
-     right: 15px;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-      user-select: none;
-      color: #333;
+    #formEditarCategoria button[type="submit"] {
+        display: block;
+        margin: 30px auto 0 auto;
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        border: none;
+        border-radius: 25px;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
     }
 
-    .close:hover {
-      color: #000;
+        #formEditarCategoria button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+
+    .close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        user-select: none;
+        color: #333;
     }
 
+        .close:hover {
+            color: #000;
+        }
 
 </style>
 
@@ -357,7 +388,7 @@
             document.getElementById('modal-editar').style.display = 'none';
         }
 
-        // Cerrar modal si se clickea fuera del contenido
+        
         window.onclick = function (event) {
             var modal = document.getElementById('modal-editar');
             if (event.target == modal) {
