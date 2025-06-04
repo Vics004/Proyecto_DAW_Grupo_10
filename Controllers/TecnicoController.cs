@@ -62,6 +62,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             public DateTime Fecha { get; set; }
             public string Tipo { get; set; } // "Comentario" o "Cambio de Estado"
             public string Detalle { get; set; }
+            public int? TareaId { get; set; }
         }
         [HttpPost]
         public IActionResult Detalles(int id)
@@ -102,13 +103,30 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             var estadosPermitidos = new[] { "En proceso", "En espera del cliente" };
 
             var estados = (from e in _ticketsDbContext.estado
-                           where e.nombre != creado && e.nombre != "Cancelado" && e.nombre != asignado && e.nombre != Finalizado
+                           where e.nombre == "En proceso"
                            select new SelectListItem
                            {
                                Value = e.estadoId.ToString(),
                                Text = e.nombre
                            }).ToList();
 
+            //Si esta en proceso puede añadir el estado "En espera del cliente"
+            if (estadoActual == "En proceso")
+            {
+                var estadoEnProceso = _ticketsDbContext.estado
+                    .Where(e => e.nombre == "En espera del cliente")
+                    .Select(e => new SelectListItem
+                    {
+                        Value = e.estadoId.ToString(),
+                        Text = e.nombre
+                    })
+                    .FirstOrDefault();
+                if (estadoEnProceso != null)
+                {
+                    estados.Add(estadoEnProceso);
+                }
+
+            }
             // Agregar "Finalizado" solo si el estado actual está permitido
             if (estadoActual == "En proceso" || estadoActual == "En espera del cliente")
             {
@@ -161,7 +179,8 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                        Usuario = u.nombre,
                                        Fecha = com.fecha,
                                        Tipo = "Comentario",
-                                       Detalle = com.texto
+                                       Detalle = com.texto,
+                                       TareaId = com.tareaId
                                    }).ToList();
 
             var historialEstados = (from he in _ticketsDbContext.historialEstados
@@ -174,7 +193,8 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                         Usuario = u.nombre,
                                         Fecha = he.fechaNuevo,
                                         Tipo = "Cambio de Estado",
-                                        Detalle = "Estado cambiado a: " + e.nombre
+                                        Detalle = "Estado cambiado a: " + e.nombre,
+                                        TareaId = he.tareaId
                                     }).ToList();
             var actividadCompleta = comentariosList
             .Concat(historialEstados)
@@ -194,10 +214,79 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             var estadoNombre = (from e in _ticketsDbContext.estado
                                 where e.estadoId == estadoId
                                 select e.nombre).FirstOrDefault();
+
+            var estadoTicket = (from t in _ticketsDbContext.ticket
+                                join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
+                                where t.ticketId== tarea.ticketId
+                                select e.nombre).FirstOrDefault();
+            var ticket = _ticketsDbContext.tarea.Find(tarea.ticketId);
+
+            if (estadoTicket == asignado)
+            {
+                //Aqui busco y coloco el id del estado en proceso
+                var idEstado = (from e in _ticketsDbContext.estado
+                                 where e.nombre == "En proceso"
+                                 select e.estadoId).FirstOrDefault();
+                //Aqui actualizo el estado del Ticket a "En proceso" solo si el estado actual es "Asignado"
+                ticket.estadoId = idEstado;
+                _ticketsDbContext.SaveChanges();
+
+
+                /*
+                 * 
+                 * 
+                 * 
+                 * 
+                 * 
+                    Zona para logica de Email para mandar en proceso del Ticket (probablemente)
+                 *
+                 *
+                 *
+                 *
+                 *
+                 *
+                 *
+                 */
+
+                // Registrar el cambio de estado en el historial
+                var historialEstado2 = new historialEstados
+                {
+                    ticketId = ticket.ticketId,
+                    usuarioId = (int)HttpContext.Session.GetInt32("usuarioId"),
+                    estadoAnteriorId = ticket.estadoId,
+                    estadoNuevoId = idEstado,
+                    fechaNuevo = DateTime.Now
+
+                };
+                _ticketsDbContext.historialEstados.Add(historialEstado2);
+                _ticketsDbContext.SaveChanges();
+            }
+
+
             if (tarea != null )
             {
                 tarea.estadoId = estadoId;
                 _ticketsDbContext.SaveChanges();
+                if (estadoNombre == Espera)
+                {
+                    //Aqui 
+                    /*
+                     * 
+                     * 
+                     * 
+                     * 
+                     * 
+                        Zona para logica de Email para mandar correo al cliente para que revise los comentarios (probablemente)
+                     *
+                     *
+                     *
+                     *
+                     *
+                     *
+                     *
+                     */
+
+                }
             }
            
             // Registrar el cambio de estado en el historial
@@ -207,13 +296,17 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                 usuarioId = (int)HttpContext.Session.GetInt32("usuarioId"),
                 estadoAnteriorId = tarea.estadoId,
                 estadoNuevoId = estadoId,
-                fechaNuevo = DateTime.Now
+                fechaNuevo = DateTime.Now,
+                tareaId = id
+
             };
             _ticketsDbContext.historialEstados.Add(historialEstado);
             _ticketsDbContext.SaveChanges();
 
             return RedirectToAction("Dashboard");
         }
+
+
         [HttpPost]
         public IActionResult SubirComentario(int id, string comentario, int id2)
         {
