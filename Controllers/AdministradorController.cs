@@ -1,17 +1,21 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Proyecto_DAW_Grupo_10.Models;
+using Proyecto_DAW_Grupo_10.Servicios;
 
 namespace Proyecto_DAW_Grupo_10.Controllers
 {
     public class AdministradorController : Controller
     {
+        private IConfiguration _configuration; // Se agrego para los correos
         private readonly TicketsDbContext _ticketsDbContext;
 
-        public AdministradorController(TicketsDbContext ticketsDbContext)
+        public AdministradorController(TicketsDbContext ticketsDbContext, IConfiguration configuration)
         {
             _ticketsDbContext = ticketsDbContext;
+            _configuration = configuration; //Se agrego para los correos
         }
 
         //Dashboard
@@ -60,7 +64,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             return View(usuarios);
         }
 
-
+        //Agregando el correo 
         [HttpPost]
         public IActionResult Create(usuario user)
         {
@@ -68,9 +72,30 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             {
                 _ticketsDbContext.usuario.Add(user);
                 _ticketsDbContext.SaveChanges();
+
+                // Agregando el apartado de correo
+                string fechaActivacion = DateTime.Now.ToString("dd/MM/yyyy");
+                string asunto = "¡Bienvenido/a a Ayudín – Tu cuenta ha sido creada";
+                string cuerpo = $"Hola {user.nombre},\n\n" +
+                    "¡Es un placer darte la bienvenida a Ayudín! Tu cuenta ha sido creada exitosamente.\n\n" +
+                    "Tus credenciales de acceso:\n" +
+                    $"▸ Usuario: {user.nombre}\n" +
+                    $"▸ Contraseña: {user.contrasenia}\n" +
+                    $"▸ Fecha de activación: {fechaActivacion}\n\n" +
+                    "Primeros pasos: Dirígete a nuestro sitio, ingresa las credenciales y no olvides cambiar tu contraseña en Mi Perfil, Configuración cuenta.\n\n" +
+                    "Equipo de Ayudín";
+
+            
+                correo enviarCorreo = new correo(_configuration);
+                enviarCorreo.enviar(
+                    destinatario: user.correo,
+                    asunto: asunto,
+                    cuerpo: cuerpo
+                );
                 return RedirectToAction("Usuarios");
             }
             ViewBag.Roles = _ticketsDbContext.rol.ToList();
+
             return View(user);
         }
         
