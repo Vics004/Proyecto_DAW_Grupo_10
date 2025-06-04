@@ -34,7 +34,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         }
 
         //Usuarios
-        public IActionResult Usuarios()
+        public IActionResult Usuarios(bool? tipoUsuario = true)
         {
             ViewBag.Roles = _ticketsDbContext.rol.ToList();
             ViewBag.TiposUsuario = new List<SelectListItem>
@@ -48,12 +48,15 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                  new SelectListItem { Text = "Inactivo", Value = "false" }
             };
 
+            IQueryable<usuario> query = _ticketsDbContext.usuario.Include(u => u.rol);
 
-            var usuarios = _ticketsDbContext.usuario.Include(u => u.rol).ToList();
+            // Aplicar filtro si se especificó
+            if (tipoUsuario.HasValue)
+            {
+                query = query.Where(u => u.tipoUsuario == tipoUsuario.Value);
+            }
 
-            var roles = _ticketsDbContext.rol.ToList(); // Asegúrate de que haya datos en la tabla
-            ViewBag.Roles = roles; // No usamos SelectList, lo dejamos más simple
-
+            var usuarios = query.ToList();
             return View(usuarios);
         }
 
@@ -71,16 +74,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             return View(user);
         }
         
-        /*
-        public IActionResult CrearUsuario()
-        {
-            var roles = _ticketsDbContext.rol?.ToList() ?? new List<rol>();
-            ViewBag.Roles = new SelectList(roles, "rolId", "nombre");
-            return View("_CrearUsuario"); 
-        }
-        */
-
-
         public IActionResult Edit(int id)
         {
             var user = _ticketsDbContext.usuario.Find(id);
@@ -110,6 +103,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                         existingUser.nombre = user.nombre;
                         existingUser.correo = user.correo;
                         existingUser.telefono = user.telefono;
+                        existingUser.contrasenia = user.contrasenia;
                         existingUser.rolId = user.rolId;
                         existingUser.tipoUsuario = user.tipoUsuario;
                         existingUser.activo = user.activo;
