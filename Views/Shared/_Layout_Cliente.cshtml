@@ -5,6 +5,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Proyecto_DAW_Grupo_10</title>
@@ -22,7 +27,7 @@
         
         <ul class="navbar-nav">
             
-            @if (rol == "Cliente")
+            @if (rol == "Cliente" || rol == "Empleado")
             {
                 <li class="nav-item">
                     <a class="nav-link" asp-area="" asp-controller="Cliente" asp-action="Dashboard">
