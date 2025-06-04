@@ -123,20 +123,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             return View(user);
         }
 
-        /*[HttpPost]
-        public async Task<IActionResult> ToggleActivo(int id)
-        {
-            var usuario = await _ticketsDbContext.usuario.FindAsync(id);
-            if (usuario == null)
-            {
-                return NotFound();
-            }
-
-            usuario.activo = !usuario.activo;
-            await _ticketsDbContext.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Usuarios));
-        }*/
+        
 
 
         //Otros CRUDS
