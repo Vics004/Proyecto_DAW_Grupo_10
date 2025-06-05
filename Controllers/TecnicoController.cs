@@ -1,15 +1,19 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Proyecto_DAW_Grupo_10.Models;
+using Proyecto_DAW_Grupo_10.Servicios;
 
 namespace Proyecto_DAW_Grupo_10.Controllers
 {
     public class TecnicoController : Controller
     {
+
+        private IConfiguration _configuration; // Se agrego para los correos
         private readonly TicketsDbContext _ticketsDbContext;
-        public TecnicoController(TicketsDbContext ticketsDbContext)
+        public TecnicoController(TicketsDbContext ticketsDbContext, IConfiguration configuration)
         {
             _ticketsDbContext = ticketsDbContext;
+            _configuration = configuration; //Se agrego para los correos
         }
         //Variables cambiantes por el moomento (previo a los insert)
         string creado = "Creado", Finalizado = "Finalizado", Espera = "En espera del cliente", asignado = "Asignado";
@@ -207,6 +211,8 @@ namespace Proyecto_DAW_Grupo_10.Controllers
 
             return View();
         }
+
+
         [HttpPost]
         public IActionResult CambiarEstado(int id, int estadoId)
         {
@@ -217,7 +223,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
 
             var estadoTicket = (from t in _ticketsDbContext.ticket
                                 join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
-                                where t.ticketId== tarea.ticketId
+                                where t.ticketId == tarea.ticketId
                                 select e.nombre).FirstOrDefault();
             var ticket = _ticketsDbContext.tarea.Find(tarea.ticketId);
 
@@ -225,28 +231,17 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             {
                 //Aqui busco y coloco el id del estado en proceso
                 var idEstado = (from e in _ticketsDbContext.estado
-                                 where e.nombre == "En proceso"
-                                 select e.estadoId).FirstOrDefault();
+                                where e.nombre == "En proceso"
+                                select e.estadoId).FirstOrDefault();
                 //Aqui actualizo el estado del Ticket a "En proceso" solo si el estado actual es "Asignado"
                 ticket.estadoId = idEstado;
                 _ticketsDbContext.SaveChanges();
 
 
                 /*
-                 * 
-                 * 
-                 * 
-                 * 
-                 * 
                     Zona para logica de Email para mandar en proceso del Ticket (probablemente)
-                 *
-                 *
-                 *
-                 *
-                 *
-                 *
-                 *
                  */
+
 
                 // Registrar el cambio de estado en el historial
                 var historialEstado2 = new historialEstados
@@ -263,7 +258,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             }
 
 
-            if (tarea != null )
+            if (tarea != null)
             {
                 tarea.estadoId = estadoId;
                 _ticketsDbContext.SaveChanges();
@@ -271,39 +266,96 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                 {
                     //Aqui 
                     /*
-                     * 
-                     * 
-                     * 
-                     * 
-                     * 
                         Zona para logica de Email para mandar correo al cliente para que revise los comentarios (probablemente)
                      *
-                     *
-                     *
-                     *
-                     *
-                     *
-                     *
                      */
+                    EnviarCorreoEstado(tarea.ticketId, "En espera de revisión por parte de cliente"); // Se agrego por lo de correo
 
                 }
             }
-           
-            // Registrar el cambio de estado en el historial
-            var historialEstado = new historialEstados
+
+            //Se colocó en este punto porque si se colocaba arriba (en la zona marcada) se mandaba 3 veces
+            // En proceso, en espera y en finalizado, ya acá solo se manda en proceso
+
+            if (estadoNombre == "En proceso")
             {
-                ticketId = tarea.ticketId,
-                usuarioId = (int)HttpContext.Session.GetInt32("usuarioId"),
-                estadoAnteriorId = tarea.estadoId,
-                estadoNuevoId = estadoId,
-                fechaNuevo = DateTime.Now,
-                tareaId = id
+                EnviarCorreoEstado(ticket.ticketId, "En proceso");
+            }
 
-            };
-            _ticketsDbContext.historialEstados.Add(historialEstado);
-            _ticketsDbContext.SaveChanges();
+            /*Se agregó para el envío de correo a todos los Administradores, cuando una tarea se marque como finalizada*/
+            // Se puso una plantilla en específico para los Administradores en vez de usar el método que contiene la plantilla para clientes
+            // Para indicarles que revisen la tarea
+            if (estadoNombre == "Finalizado")
+            {
+                var administradores = (
+                    from u in _ticketsDbContext.usuario
+                    join r in _ticketsDbContext.rol on u.rolId equals r.rolId
+                    where r.nombre == "Administrador" && u.activo == true
+                    select u
+                ).ToList();
 
+                var ticketRelacionado = _ticketsDbContext.ticket.Find(tarea.ticketId);
+
+                foreach (var admin in administradores)
+                {
+                    string asunto = $"Tarea #{tarea.tareaId} finalizada";
+                    string cuerpo = $"Es un gusto saludarte Administrador/a {admin.nombre},\n\n" +
+                                    $"La tarea #{tarea.tareaId} asociada al ticket #{ticketRelacionado.ticketId} ha sido marcada como Finalizada.Puede ingresar al sistema para revisarla.\n\n" +
+                                    $"Descripción del ticket: {ticketRelacionado.descripcion}\n\n" +
+                                    $"Atentamente,\nEquipo de Ayudín";
+
+                    correo enviarCorreo = new correo(_configuration);
+                    enviarCorreo.enviar(
+                        destinatario: admin.correo,
+                        asunto: asunto,
+                        cuerpo: cuerpo
+                    );
+                }
+                /*Fin plantilla*/
+
+
+                // Registrar el cambio de estado en el historial
+                var historialEstado = new historialEstados
+                {
+                    ticketId = tarea.ticketId,
+                    usuarioId = (int)HttpContext.Session.GetInt32("usuarioId"),
+                    estadoAnteriorId = tarea.estadoId,
+                    estadoNuevoId = estadoId,
+                    fechaNuevo = DateTime.Now,
+                    tareaId = id
+
+                };
+                _ticketsDbContext.historialEstados.Add(historialEstado);
+                _ticketsDbContext.SaveChanges();
+
+                return RedirectToAction("Dashboard");
+            }
             return RedirectToAction("Dashboard");
+        }
+
+
+        //Método para el envío de correos para En proceso y En espera de la respuesta (Cliente)
+        private void EnviarCorreoEstado(int ticketId, string estadoNombre)
+        {
+            var ticket = _ticketsDbContext.ticket.Find(ticketId);
+            if (ticket == null) return;
+
+            var usuarioCliente = _ticketsDbContext.usuario.Find(ticket.usuarioCreadorId);
+            if (usuarioCliente == null) return;
+
+            string asunto = $"Ticket #{ticket.ticketId} está en {estadoNombre.ToLower()}";
+            string cuerpo = $"Hola {usuarioCliente.nombre},\n\n" +
+                            $"Estamos trabajando en tu ticket #{ticket.ticketId} sobre {ticket.descripcion}, tu ticket se encuentra: {estadoNombre}. Nuestro equipo está trabajando con dedicación para ofrecerte la mejor solución a tu caso.\n\n" +
+                            "Próximamente te informaremos sobre avances.\n\n" +
+                            "Atentamente,\n" +
+                            "Equipo de Ayudín";
+
+            correo enviarCorreo = new correo(_configuration);
+            enviarCorreo.enviar(
+                destinatario: usuarioCliente.correo,
+                asunto: asunto,
+                cuerpo: cuerpo
+            );
         }
 
 
