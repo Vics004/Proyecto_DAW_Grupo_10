@@ -90,6 +90,8 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                      Estado = e.nombre,
                                      Prioridad = p.nombre,
                                      Categoria = c.nombre,
+                                     Problema = ta.descripcion,
+                                     ProblemaTi = ti.descripcion,
                                  }).FirstOrDefault();
             //Controlador para cambiar de vista a la no editable y reutilizar vista
             if (tareasDetalle.Estado == "Cancelado" || tareasDetalle.Estado == "Finalizado")

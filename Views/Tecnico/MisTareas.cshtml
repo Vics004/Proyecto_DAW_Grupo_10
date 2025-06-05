@@ -82,8 +82,11 @@
 
                             <!-- Estado -->
                             <div class="task-cell task-status">
-                                <span class="status-badge status-@tarea.Estado.ToLower().Replace(" ", "-")">@tarea.Estado</span>
+                                <span class="status-badge status-@tarea.Estado.ToLower().Replace(" ", "-")" title="@tarea.Estado">
+                                    @tarea.Estado
+                                </span>
                             </div>
+
 
                             <!-- Prioridad -->
                             <div class="task-cell task-priority">
@@ -116,3 +119,18 @@
         }
     });
 </script>
+<style>
+    .status-badge {
+        display: inline-block;
+        font-size: 12px; /* Tamaño de texto más pequeño */
+        padding: 4px 8px; /* Menos espacio interno */
+        max-width: 140px; /* Limita el ancho */
+        white-space: nowrap; /* Evita saltos de línea */
+        overflow: hidden; /* Oculta lo que se pasa */
+        text-overflow: ellipsis; /* Muestra "..." si el texto es muy largo */
+        border-radius: 4px;
+        background-color: #eee; /* Puedes personalizar esto */
+        color: #333;
+    }
+
+</style>

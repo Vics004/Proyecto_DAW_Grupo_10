@@ -41,6 +41,7 @@
                                 <span class="info-value">@detalles2.Categoria</span>
                             </div>
                         </div>
+                        
 
                         <div class="info-item">
                             <div class="info-icon">
@@ -84,7 +85,28 @@
                                 <span class="priority-badge priority-@detalles2.Prioridad.ToLower()">@detalles2.Prioridad</span>
                             </div>
                         </div>
+
                     </div>
+                    
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <span data-feather="tag"></span>
+                        </div>
+                        <div class="info-content">
+                            <span class="info-label">Descripción Del problema General</span>
+                            <span class="info-value">@detalles2.ProblemaTi</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <span data-feather="tag"></span>
+                        </div>
+                        <div class="info-content">
+                            <span class="info-label">Descripción de la tarea asignada</span>
+                            <span class="info-value">@detalles2.Problema</span>
+                        </div>
+                    </div>
+                    
 
                     <!-- Sección de cambio de estado -->
                     @if (ViewBag.EstadoTerminado == false)
@@ -402,7 +424,10 @@
         color: var(--text-primary);
     }
 
-    
+    .info-item {
+    margin-bottom: 16px; /* Puedes ajustar el valor (8px, 12px, 24px...) */
+}
+
 
     /* Main Content */
     .main-content {
