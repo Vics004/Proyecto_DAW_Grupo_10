@@ -31,6 +31,83 @@
                     </div>
                 </div>
 
+
+                <!-- Sección de Filtros -->
+                <div class="tasks-section stats-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <span data-feather="filter"></span>
+                            Filtros de Búsqueda
+                        </h2>
+                    </div>
+                    <div style="padding: 2rem 2.5rem;">
+                        <form method="get" asp-action="HistorialTareas" id="filtrosForm">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label for="fechaInicio" class="form-label">Fecha Inicio:</label>
+                                    <input type="date" name="fechaInicio" id="fechaInicio" class="form-control"
+                                           value="@(ViewBag.FechaInicio?.ToString("yyyy-MM-dd"))" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="fechaFin" class="form-label">Fecha Fin:</label>
+                                    <input type="date" name="fechaFin" id="fechaFin" class="form-control"
+                                           value="@(ViewBag.FechaFin?.ToString("yyyy-MM-dd"))" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="estadoFiltro" class="form-label">Estado:</label>
+                                    <select name="estadoFiltro" id="estadoFiltro" class="form-select">
+                                        <option value="">Todos los estados</option>
+                                        @foreach (var item in ViewBag.Estados)
+                                        {
+                                            <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="categoriaFiltro" class="form-label">Categoría:</label>
+                                    <select name="categoriaFiltro" id="categoriaFiltro" class="form-select">
+                                        <option value="">Todas las categorías</option>
+                                        @foreach (var item in ViewBag.Categorias)
+                                        {
+                                            <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-12 d-flex align-items-end gap-2">
+                                    <button type="submit" class="btn-view" style="flex: 1;">
+                                        <span data-feather="search"></span>
+                                        Filtrar
+                                    </button>
+                                    <a asp-action="HistorialTareas" class="btn-view" style="background: var(--secondary-color); flex: 1;">
+                                        <span data-feather="x"></span>
+                                        Limpiar
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <span style="color: var(--text-secondary); font-weight: 500;">
+                        Mostrando <strong style="color: var(--primary-color);">
+                            @(((IEnumerable<dynamic>)ViewData["MisTareas"]).Count())
+                        </strong> tarea(s)
+                    </span>
+
+                    <div class="task-actions" style="display: flex; gap: 0.75rem;">
+                        <a href="@Url.Action("GenerarPDFHistorialTareas", "Tecnico", new {
+                                fechaInicio = ViewBag.FechaInicio?.ToString("yyyy-MM-dd"),
+                                fechaFin = ViewBag.FechaFin?.ToString("yyyy-MM-dd"),
+                                estadoFiltro = ViewBag.EstadoSeleccionado,
+                                categoriaFiltro = ViewBag.CategoriaSeleccionada
+                            })" class="btn-view" style="background: var(--danger-color);">
+                            <span data-feather="download"></span>
+                            Exportar a PDF
+                        </a>
+                    </div>
+
+                </div>
+
+
+
                 <!-- Table Header -->
                 <div class="table-header">
                     <div class="header-cell header-ticket">
@@ -417,6 +494,117 @@
         width: 12px;
         height: 12px;
     }
+    /* Sección de Filtros */
+    .stats-section {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 2px solid var(--primary-color);
+        margin-bottom: 2rem;
+    }
+
+    /* Formulario de Filtros */
+    #filtrosForm {
+        margin-bottom: 0;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+        letter-spacing: 0.025em;
+    }
+
+    .form-control, .form-select {
+        background-color: white;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        color: var(--text-primary);
+        transition: all 0.2s ease;
+        box-shadow: var(--shadow-sm);
+    }
+
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            background-color: white;
+        }
+
+        .form-control:hover, .form-select:hover {
+            border-color: var(--primary-dark);
+        }
+
+    /* Botones de Filtros */
+    .btn-view {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        font-size: 0.875rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+        .btn-view:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-view svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Botón Limpiar */
+        .btn-view[style*="--secondary-color"]:hover {
+            background: #475569 !important;
+        }
+
+        /* Botón Exportar PDF */
+        .btn-view[style*="--danger-color"]:hover {
+            background: #dc2626 !important;
+        }
+
+    /* Contador de resultados */
+    .stats-section > span {
+        display: block;
+        padding: 0 2.5rem 1rem;
+        margin: 0;
+    }
+
+    /* Acciones de tareas */
+    .task-actions {
+        padding: 0 2.5rem 2rem;
+        margin: 0;
+    }
+
+    /* Ajuste para botón Ver en la tabla */
+    .btn-view-details {
+        min-width: 80px;
+        padding: 0.625rem 0.875rem;
+        font-size: 0.875rem;
+        height: auto;
+        min-height: 36px;
+    }
+
+        .btn-view-details svg {
+            width: 14px;
+            height: 14px;
+        }
+
 
 
 </style>

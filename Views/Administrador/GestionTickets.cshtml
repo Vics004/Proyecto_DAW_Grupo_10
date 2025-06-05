@@ -4,25 +4,44 @@
     var ticketsSinAsignar = ViewBag.TicketsSinAsignar as List<Proyecto_DAW_Grupo_10.Models.ticket>;
 }
 
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
 <div class="container-fluid">
     <div class="row">
-
-
         <!-- Main Content -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 main-content">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-
                 <h1 class="h2">Gestión de Tickets</h1>
             </div>
 
+            <!-- Alertas -->
+            <div style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1050; width: 90%; max-width: 600px;">
+                @if (TempData["Mensaje"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert"
+                         style="border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); padding: 1rem;">
+                        @TempData["Mensaje"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                         style="border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); padding: 1rem;">
+                        @TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+            </div>
+
             <!-- Tickets Asignados -->
-            <div class="card mb-5">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Tickets Asignados</h5>
-                </div>
-                <div class="card-body table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-light">
+            <div class="table-container mb-5">
+                <div class="tasks-section">
+                    <h3 class="section-title mb-3">Tickets Asignados</h3>
+                    <table class="table modern-table">
+                        <thead>
                             <tr>
                                 <th>ID Ticket</th>
                                 <th>Problema</th>
@@ -38,14 +57,25 @@
                             {
                                 var primeraTarea = ticket.tarea?.OrderBy(t => t.fecha).FirstOrDefault();
                                 <tr>
-                                    <td>@ticket.ticketId</td>
+                                    <td class="id-column">@ticket.ticketId</td>
                                     <td>@ticket.problema?.nombre</td>
                                     <td>@ticket.problema?.categoria?.nombre</td>
                                     <td>@primeraTarea?.fecha.ToString("dd/MM/yyyy")</td>
-                                    <td>@ticket.estado?.nombre</td>
-                                    <td>@ticket.prioridad?.nombre</td>
                                     <td>
-                                        <a href="/Administrador/EditarTicket/@ticket.ticketId" class="btn btn-sm btn-warning">Editar</a>
+                                        <span class="status-badge status-@ticket.estado?.nombre.ToLower().Replace(" ", "-")">
+                                            @ticket.estado?.nombre
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="priority-badge priority-@ticket.prioridad?.nombre.ToLower()">
+                                            @ticket.prioridad?.nombre
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <a href="/Administrador/EditarTicket/@ticket.ticketId" class="btn-view d-flex align-items-center justify-content-center" style="width: 100px;">
+                                            Editar
+                                        </a>
                                     </td>
                                 </tr>
                             }
@@ -55,13 +85,11 @@
             </div>
 
             <!-- Tickets Sin Asignar -->
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0">Tickets Sin Asignar</h5>
-                </div>
-                <div class="card-body table-responsive">
-                    <table class="table table-bordered table-hover">
-                        <thead class="table-light">
+            <div class="table-container">
+                <div class="tasks-section">
+                    <h3 class="section-title mb-3">Tickets Sin Asignar</h3>
+                    <table class="table modern-table">
+                        <thead>
                             <tr>
                                 <th>ID Ticket</th>
                                 <th>Problema</th>
@@ -75,13 +103,20 @@
                             @foreach (var ticket in ticketsSinAsignar)
                             {
                                 <tr>
-                                    <td>@ticket.ticketId</td>
+                                    <td class="id-column">@ticket.ticketId</td>
                                     <td>@ticket.problema?.nombre</td>
                                     <td>@ticket.problema?.categoria?.nombre</td>
                                     <td>@ticket.fechaApertura.ToString("dd/MM/yyyy")</td>
-                                    <td>@ticket.prioridad?.nombre</td>
                                     <td>
-                                        <a class="btn btn-sm btn-success" href="/Administrador/AsignarTicket/@ticket.ticketId">Asignar</a>
+                                        <span class="priority-badge priority-@ticket.prioridad?.nombre.ToLower()">
+                                            @ticket.prioridad?.nombre
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <a href="/Administrador/AsignarTicket/@ticket.ticketId" class="btn-view d-flex align-items-center justify-content-center" style="width: 100px;">
+                                            Asignar
+                                        </a>
                                     </td>
                                 </tr>
                             }
@@ -142,22 +177,9 @@
         --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
         --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --pending-bg: #dbeafe;
+        --pending-accent: #3b82f6;
     }
-
-
-    .company-header {
-        padding: 1.5rem 1.5rem;
-        border-bottom: 1px solid var(--border-color);
-        margin-bottom: 1rem;
-    }
-
-    .company-name {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--primary-color);
-        margin: 0;
-    }
-
 
     /* Main Content Adjustments */
     main {
@@ -165,33 +187,88 @@
         min-height: calc(100vh - 56px);
     }
 
-    /* Card Styles */
-    .card {
-        border-radius: 0.5rem;
-        box-shadow: var(--shadow-sm);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        padding: 1rem 1.5rem 0;
     }
 
-        .card:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
+    .table-container {
+        padding: 0;
+        margin-top: 20px;
+    }
+
+    .tasks-section {
+        background: linear-gradient(135deg, var(--pending-bg) 0%, #bfdbfe 100%);
+        border: 2px solid var(--pending-accent);
+        border-radius: 1.5rem;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        padding: 0px;
+    }
+
+    .modern-table {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: none;
+        border: none;
+        background: white;
+        margin: 0;
+        width: 100%;
+    }
+
+        .modern-table thead th {
+            background-color: #f8f9fa;
+            border: none;
+            padding: 16px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-    .card-header {
-        background-color: white;
-        border-bottom: 1px solid var(--border-color);
+        .modern-table tbody td {
+            border: none;
+            padding: 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .modern-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .modern-table tbody tr:hover {
+            background-color: #f8f9fa;
+            transition: background-color 0.2s ease;
+        }
+
+        .modern-table .id-column {
+            font-weight: 600;
+            color: #495057;
+            width: 80px;
+        }
+
+    .btn-view {
+        background-color: var(--primary-color);
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
     }
 
-    /* Progress Bars */
-    .progress {
-        height: 0.5rem;
-        border-radius: 0.25rem;
-        background-color: var(--medium-gray);
-    }
-
-    .progress-bar {
-        border-radius: 0.25rem;
-    }
+        .btn-view:hover {
+            background-color: var(--primary-dark);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
 
     /* Responsive Adjustments */
     @@media (max-width: 768px) {
@@ -210,57 +287,5 @@
         main {
             margin-left: 0;
         }
-    }
-
-    /* Icon Colors */
-    .fa-circle.text-primary {
-        color: var(--primary-color);
-    }
-
-    .fa-circle.text-warning {
-        color: var(--warning-color);
-    }
-
-    .fa-circle.text-success {
-        color: var(--success-color);
-    }
-
-    /* Text Styles */
-    .text-gray-800 {
-        color: var(--text-primary);
-    }
-
-    .text-primary {
-        color: var(--primary-color) !important;
-    }
-
-    .text-warning {
-        color: var(--warning-color) !important;
-    }
-
-    .text-success {
-        color: var(--success-color) !important;
-    }
-
-    /* Border Colors */
-    .border-left-primary {
-        border-left: 0.25rem solid var(--primary-color) !important;
-    }
-
-    .border-left-warning {
-        border-left: 0.25rem solid var(--warning-color) !important;
-    }
-
-    .border-left-success {
-        border-left: 0.25rem solid var(--success-color) !important;
-    }
-
-    /* Shadow Utilities */
-    .shadow {
-        box-shadow: var(--shadow-sm) !important;
-    }
-
-    .shadow-lg {
-        box-shadow: var(--shadow-lg) !important;
     }
 </style>

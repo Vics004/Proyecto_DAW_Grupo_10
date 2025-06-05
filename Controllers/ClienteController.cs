@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using static Proyecto_DAW_Grupo_10.Controllers.TecnicoController;
 using Proyecto_DAW_Grupo_10.Servicios;
+using iTextSharp.text.pdf;
+using iTextSharp.text;
 
 
 namespace Proyecto_DAW_Grupo_10.Controllers
@@ -171,7 +173,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         }
 
         [Autenticacion]
-        public IActionResult MisTickets(int? estadoFiltro, int? prioridadFiltro)
+        public IActionResult MisTickets(int? estadoFiltro, int? prioridadFiltro, DateTime? fechaInicio, DateTime? fechaFin, DateTime? fechaEspecifica)
         {
             // Obtener ID del cliente de la sesión
             var clienteId = HttpContext.Session.GetInt32("usuarioId");
@@ -209,6 +211,24 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                 ticketsQuery = ticketsQuery.Where(t => t.prioridadId == prioridadFiltro.Value);
             }
 
+            // Filtro por fecha específica
+            if (fechaEspecifica.HasValue)
+            {
+                ticketsQuery = ticketsQuery.Where(t => t.fechaApertura.Date == fechaEspecifica.Value.Date);
+            }
+            // Filtro por rango de fechas (solo si no hay fecha específica)
+            else if (fechaInicio.HasValue || fechaFin.HasValue)
+            {
+                if (fechaInicio.HasValue)
+                {
+                    ticketsQuery = ticketsQuery.Where(t => t.fechaApertura >= fechaInicio.Value.Date);
+                }
+                if (fechaFin.HasValue)
+                {
+                    ticketsQuery = ticketsQuery.Where(t => t.fechaApertura <= fechaFin.Value.Date.AddDays(1).AddTicks(-1));
+                }
+            }
+
             // Ejecutar consulta y ordenar por fecha
             var tickets = ticketsQuery.OrderByDescending(t => t.fechaApertura).ToList();
 
@@ -218,8 +238,195 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             ViewBag.Prioridades = prioridades;
             ViewBag.EstadoSeleccionado = estadoFiltro;
             ViewBag.PrioridadSeleccionada = prioridadFiltro;
+            ViewBag.FechaInicio = fechaInicio?.ToString("yyyy-MM-dd");
+            ViewBag.FechaFin = fechaFin?.ToString("yyyy-MM-dd");
+            ViewBag.FechaEspecifica = fechaEspecifica?.ToString("yyyy-MM-dd");
 
             return View();
+        }
+
+        [Autenticacion]
+        public IActionResult GenerarPDFMisTickets(int? estadoFiltro, int? prioridadFiltro, DateTime? fechaInicio, DateTime? fechaFin, DateTime? fechaEspecifica)
+        {
+            // Obtener ID del cliente de la sesión
+            var clienteId = HttpContext.Session.GetInt32("usuarioId");
+
+            // Consulta base de tickets
+            var ticketsQuery = from t in _context.ticket
+                               join p in _context.problema on t.problemaId equals p.problemaId
+                               join pr in _context.prioridad on t.prioridadId equals pr.prioridadId
+                               join e in _context.estado on t.estadoId equals e.estadoId
+                               where t.usuarioCreadorId == clienteId
+                               select new
+                               {
+                                   t.ticketId,
+                                   Problema = p.nombre,
+                                   Prioridad = pr.nombre,
+                                   t.fechaApertura,
+                                   Estado = e.nombre,
+                                   t.descripcion,
+                                   t.estadoId,
+                                   t.prioridadId
+                               };
+
+            // Aplicar filtros si están seleccionados
+            if (estadoFiltro.HasValue)
+            {
+                ticketsQuery = ticketsQuery.Where(t => t.estadoId == estadoFiltro.Value);
+            }
+
+            if (prioridadFiltro.HasValue)
+            {
+                ticketsQuery = ticketsQuery.Where(t => t.prioridadId == prioridadFiltro.Value);
+            }
+
+            // Filtro por fecha específica
+            if (fechaEspecifica.HasValue)
+            {
+                ticketsQuery = ticketsQuery.Where(t => t.fechaApertura.Date == fechaEspecifica.Value.Date);
+            }
+            // Filtro por rango de fechas (solo si no hay fecha específica)
+            else if (fechaInicio.HasValue || fechaFin.HasValue)
+            {
+                if (fechaInicio.HasValue)
+                {
+                    ticketsQuery = ticketsQuery.Where(t => t.fechaApertura >= fechaInicio.Value.Date);
+                }
+                if (fechaFin.HasValue)
+                {
+                    ticketsQuery = ticketsQuery.Where(t => t.fechaApertura <= fechaFin.Value.Date.AddDays(1).AddTicks(-1));
+                }
+            }
+
+            // Ejecutar consulta y ordenar por fecha
+            var tickets = ticketsQuery.OrderByDescending(t => t.fechaApertura).ToList();
+
+            // Obtener información del cliente para el reporte
+            var cliente = _context.usuario.FirstOrDefault(u => u.usuarioId == clienteId);
+            var clienteNombre = cliente?.nombre ?? "Cliente";
+
+            // Crear el documento PDF
+            using var ms = new MemoryStream();
+            var doc = new Document(PageSize.A4);
+            PdfWriter.GetInstance(doc, ms);
+            doc.Open();
+
+            // Fuentes
+            var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
+            var subtitleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
+            var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
+            var bodyFont = FontFactory.GetFont(FontFactory.HELVETICA, 9);
+            var smallFont = FontFactory.GetFont(FontFactory.HELVETICA, 8);
+
+            // Título y subtítulo
+            doc.Add(new Paragraph("Ayudín", titleFont));
+            doc.Add(new Paragraph($"Reporte de Tickets - {clienteNombre}", subtitleFont));
+            doc.Add(new Paragraph(DateTime.Now.ToString("dd/MM/yyyy HH:mm"), smallFont));
+            doc.Add(new Paragraph(" "));
+
+            // Información de filtros aplicados
+            var filtros = new Paragraph("Filtros aplicados: ", subtitleFont);
+
+            if (estadoFiltro.HasValue)
+            {
+                var estadoNombre = _context.estado.FirstOrDefault(e => e.estadoId == estadoFiltro.Value)?.nombre;
+                filtros.Add(new Chunk($" Estado: {estadoNombre}   ", bodyFont));
+            }
+
+            if (prioridadFiltro.HasValue)
+            {
+                var prioridadNombre = _context.prioridad.FirstOrDefault(p => p.prioridadId == prioridadFiltro.Value)?.nombre;
+                filtros.Add(new Chunk($" Prioridad: {prioridadNombre}   ", bodyFont));
+            }
+
+            if (fechaEspecifica.HasValue)
+            {
+                filtros.Add(new Chunk($" Fecha: {fechaEspecifica.Value.ToString("dd/MM/yyyy")}   ", bodyFont));
+            }
+            else
+            {
+                if (fechaInicio.HasValue)
+                {
+                    filtros.Add(new Chunk($" Desde: {fechaInicio.Value.ToString("dd/MM/yyyy")}", bodyFont));
+                }
+                if (fechaFin.HasValue)
+                {
+                    filtros.Add(new Chunk($" Hasta: {fechaFin.Value.ToString("dd/MM/yyyy")}", bodyFont));
+                }
+            }
+
+            if (!estadoFiltro.HasValue && !prioridadFiltro.HasValue && !fechaEspecifica.HasValue && !fechaInicio.HasValue && !fechaFin.HasValue)
+            {
+                filtros.Add(new Chunk(" Ninguno", bodyFont));
+            }
+
+            doc.Add(filtros);
+            doc.Add(new Paragraph(" "));
+
+            // Crear tabla para los tickets
+            PdfPTable table = new PdfPTable(5);
+            table.WidthPercentage = 100;
+            table.SetWidths(new float[] { 1f, 3f, 2f, 2f, 3f });
+
+            // Encabezados de la tabla
+            string[] headers = { "ID", "Problema", "Prioridad", "Estado", "Fecha Apertura" };
+            foreach (var h in headers)
+            {
+                table.AddCell(new PdfPCell(new Phrase(h, headerFont)) { BackgroundColor = new BaseColor(240, 240, 240) });
+            }
+
+            // Agregar tickets a la tabla
+            foreach (var t in tickets)
+            {
+                table.AddCell(new Phrase(t.ticketId.ToString(), bodyFont));
+                table.AddCell(new Phrase(t.Problema, bodyFont));
+                table.AddCell(new Phrase(t.Prioridad, bodyFont));
+                table.AddCell(new Phrase(t.Estado, bodyFont));
+                table.AddCell(new Phrase(t.fechaApertura.ToString("dd/MM/yyyy HH:mm"), bodyFont));
+            }
+
+            doc.Add(table);
+
+            // Agregar resumen al final
+            doc.Add(new Paragraph(" "));
+            doc.Add(new Paragraph($"Total de tickets: {tickets.Count}", subtitleFont));
+
+            // Si no hay tickets, mostrar mensaje
+            if (tickets.Count == 0)
+            {
+                doc.Add(new Paragraph("No se encontraron tickets con los filtros seleccionados.", bodyFont));
+            }
+
+            doc.Close();
+
+            // Nombre del archivo con filtros aplicados
+            string fileName = $"MisTickets_{clienteNombre}_{DateTime.Now:yyyyMMddHHmm}";
+            if (estadoFiltro.HasValue)
+            {
+                fileName += $"_Estado{estadoFiltro.Value}";
+            }
+            if (prioridadFiltro.HasValue)
+            {
+                fileName += $"_Prioridad{prioridadFiltro.Value}";
+            }
+            if (fechaEspecifica.HasValue)
+            {
+                fileName += $"_Fecha{fechaEspecifica.Value:yyyyMMdd}";
+            }
+            else
+            {
+                if (fechaInicio.HasValue)
+                {
+                    fileName += $"_Desde{fechaInicio.Value:yyyyMMdd}";
+                }
+                if (fechaFin.HasValue)
+                {
+                    fileName += $"_Hasta{fechaFin.Value:yyyyMMdd}";
+                }
+            }
+            fileName += ".pdf";
+
+            return File(ms.ToArray(), "application/pdf", fileName);
         }
 
         public class ActividadDTO
@@ -289,7 +496,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             var historialEstados = (from he in _context.historialEstados
                                     join u in _context.usuario on he.usuarioId equals u.usuarioId
                                     join e in _context.estado on he.estadoNuevoId equals e.estadoId
-                                    where he.ticketId == id
+                                    where he.ticketId == id && he.tareaId == null
                                     select new ActividadDTO
                                     {
                                         UsuarioId = u.usuarioId,  // Incluir el ID del usuario

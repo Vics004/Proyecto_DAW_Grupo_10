@@ -21,19 +21,24 @@
     <div style="padding: 2rem 2.5rem;">
         <form method="get" asp-action="MisTickets" id="filtrosForm">
             <div class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="estadoFiltro" class="form-label" style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Estado:</label>
                     <select name="estadoFiltro" id="estadoFiltro" class="form-select" style="border: 2px solid var(--border-color); border-radius: 0.75rem; padding: 0.75rem 1rem; font-size: 1rem;" asp-items="@(new SelectList(ViewBag.Estados as IEnumerable<dynamic>, "estadoId", "nombre", ViewBag.EstadoSeleccionado))">
                         <option value="">Todos los estados</option>
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="prioridadFiltro" class="form-label" style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Prioridad:</label>
                     <select name="prioridadFiltro" id="prioridadFiltro" class="form-select" style="border: 2px solid var(--border-color); border-radius: 0.75rem; padding: 0.75rem 1rem; font-size: 1rem;" asp-items="@(new SelectList(ViewBag.Prioridades as IEnumerable<dynamic>, "prioridadId", "nombre", ViewBag.PrioridadSeleccionada))">
                         <option value="">Todas las prioridades</option>
                     </select>
                 </div>
-                <div class="col-md-4 d-flex align-items-end gap-2">
+                <div class="col-md-3">
+                    <label for="fechaEspecifica" class="form-label" style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Fecha específica:</label>
+                    <input type="date" name="fechaEspecifica" id="fechaEspecifica" class="form-control" style="border: 2px solid var(--border-color); border-radius: 0.75rem; padding: 0.75rem 1rem; font-size: 1rem;"
+                           value="@ViewBag.FechaEspecifica" />
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-2">
                     <button type="submit" class="btn-view" style="flex: 1;">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -53,7 +58,7 @@
 </div>
 
 <!-- Información de resultados -->
-<div style="margin-bottom: 1.5rem; padding: 1rem 1.5rem; background: var(--light-gray); border-radius: 0.75rem; border-left: 4px solid var(--primary-color);">
+<div style="margin-bottom: 1.5rem; padding: 1rem 1.5rem; background: var(--light-gray); border-radius: 0.75rem; border-left: 4px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center;">
     @if (ViewBag.Tickets != null)
     {
         <span style="color: var(--text-secondary); font-weight: 500;">
@@ -64,9 +69,20 @@
             }
         </span>
     }
-    <div class="task-actions">
+
+    <div class="task-actions" style="display: flex; gap: 0.75rem;">
+        <a href="@Url.Action("GenerarPDFMisTickets", "Cliente", new {
+        estadoFiltro = ViewBag.EstadoSeleccionado,
+        prioridadFiltro = ViewBag.PrioridadSeleccionada,
+        fechaEspecifica = ViewBag.FechaEspecifica
+    })" class="btn-view" style="background: var(--danger-color);">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 1rem; height: 1rem;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Exportar a PDF
+        </a>
         <a href="@Url.Action("CrearTicket")" class="btn-view">
-            <i class="fas fa-plus-circle"></i> Crear un nuevo ticket
+            <i class="fas fa-plus-circle"></i> Crear Ticket
         </a>
     </div>
 </div>
@@ -155,7 +171,6 @@
         }
     </div>
 </div>
-
 
 <script>
     // Script para aplicar filtros automáticamente al cambiar selección
