@@ -3,93 +3,105 @@
     ViewData["Title"] = "Gestión de Usuarios";
     Layout = "_Layout";
 }
-<link rel="stylesheet" href="~/css/admincss/usuarios.css" />
-<div class="container-fluid">
-    <div class="row">
-        <!-- Contenido principal -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 main-content">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Gestión de Usuarios</h1>
-                
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/admincss/usuarios.css" />
+</head>
+
+<div class="container mt-4">
+    <h2 style="margin-bottom:20px" class="dashboard-title">@ViewData["Title"]</h2>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <!-- Barra de búsqueda -->
+        <div class="search-container" style="flex-grow: 1; position: relative; margin-right: 15px;">
+            <input type="text" id="liveSearchInput" placeholder="Buscar usuarios... (ID, nombre, correo, teléfono, empresa...)"
+                   style="width: 100%; padding: 8px 40px 8px 12px; border-radius: 25px; border: 1px solid #ccc; box-sizing: border-box;" />
+            <i class="fa fa-search" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #999;"></i>
+        </div>
+
+        <!-- Botón para crear usuario -->
+        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crearUsuarioModal"
+           style="background-color: var(--primary-color); color: white; padding: 8px 18px; border-radius: 25px; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+            <i class="fa fa-plus"></i> Crear Usuario
+        </a>
+    </div>
+
+    <!-- Filtro por tipo de usuario -->
+    <form method="get" asp-action="Usuarios" style="margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <label for="tipoUsuario" style="font-weight: 500; white-space: nowrap;">Filtrar por tipo:</label>
+            <select name="tipoUsuario" class="form-control" onchange="this.form.submit()"
+                    style="padding: 8px 12px; border-radius: 25px; border: 1px solid #ccc; max-width: 200px;">
+                @foreach (var item in ViewBag.TiposUsuario as List<SelectListItem>)
+                {
+                    <option value="@item.Value" selected="@(Context.Request.Query["tipoUsuario"] == item.Value)">@item.Text</option>
+                }
+            </select>
+        </div>
+    </form>
+
+    <!-- Mensajes de alerta -->
+    <div style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1050; width: 90%; max-width: 600px;">
+        @if (TempData["Mensaje"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert"
+                 style="border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); padding: 1rem;">
+                @TempData["Mensaje"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-
-            <div class="row mb-3">
-                <!-- Barra de búsqueda dinámica -->
-                <div class="col-md-8">
-                    <div class="search-container">
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" id="liveSearchInput" class="form-control form-control-lg"
-                                   placeholder="Buscar usuarios... (ID, nombre, correo, teléfono, empresa...)"
-                                   autocomplete="off">
-                            
-                        </div>
-                        <div class="search-info mt-2">
-                            
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Filtro por tipo de usuario -->
-                <div class="mb-3">
-                    <form method="get" asp-action="Usuarios" class="row g-3">
-                        <div class="col-md-4">
-                            <label for="tipoUsuario" class="form-label">Filtrar por tipo de usuario:</label>
-                            <select name="tipoUsuario" class="form-select" onchange="this.form.submit()">
-                                @foreach (var item in ViewBag.TiposUsuario as List<SelectListItem>)
-                                {
-                                    <option value="@item.Value" selected="@(Context.Request.Query["tipoUsuario"] == item.Value)">@item.Text</option>
-                                }
-                            </select>
-                        </div>
-                    </form>
-                </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                 style="border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); padding: 1rem;">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
+        }
+    </div>
 
-            
-            <a asp-action="Create" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearUsuarioModal">Crear Usuario</a>
-
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="table-dark">
+    <!-- Tabla de usuarios -->
+    <div class="table-container">
+        <div class="tasks-section">
+            <table class="table modern-table">
+                <thead>
+                    <tr>
+                        <th class="col-1">ID</th>
+                        <th class="col-2">Nombre</th>
+                        <th class="col-2">Correo</th>
+                        <th class="col-1">Teléfono</th>
+                        <th class="col-1">Rol</th>
+                        <th class="col-1">Tipo</th>
+                        <th class="col-1">Estado</th>
+                        @if (Context.Request.Query["tipoUsuario"] == "false")
+                        {
+                            <th class="col-1">Empresa</th>
+                            <th class="col-1">Contacto</th>
+                        }
+                        <th class="col-2">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var usuario in Model)
+                    {
                         <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Correo</th>
-                            <th>Teléfono</th>
-                            <th>Rol</th>
-                            <th>Tipo</th>
-                            <th>Estado</th>
+                            <td class="col-1 id-column">@usuario.usuarioId</td>
+                            <td class="col-2">@usuario.nombre</td>
+                            <td class="col-2">@usuario.correo</td>
+                            <td class="col-1">@usuario.telefono</td>
+                            <td class="col-1">@usuario.rol?.nombre</td>
+                            <td class="col-1">@(usuario.tipoUsuario ? "Interno" : "Externo")</td>
+                            <td class="col-1">@(usuario.activo ? "Activo" : "Inactivo")</td>
                             @if (Context.Request.Query["tipoUsuario"] == "false")
                             {
-                                <th>Empresa</th>
-                                <th>Contacto Principal</th>
-                                <th>Detalle Contacto</th>
+                                <td class="col-1">@usuario.empresa</td>
+                                <td class="col-1">@usuario.contactoPrincipal</td>
                             }
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var usuario in Model)
-                        {
-                            <tr>
-                                <td>@usuario.usuarioId</td>
-                                <td>@usuario.nombre</td>
-                                <td>@usuario.correo</td>
-                                <td>@usuario.telefono</td>
-                                <td>@usuario.rol?.nombre</td>
-                                <td>@(usuario.tipoUsuario ? "Interno" : "Externo")</td>
-                                <td>@(usuario.activo ? "Activo" : "Inactivo")</td>
-                                @if (Context.Request.Query["tipoUsuario"] == "false")
-                                {
-                                    <td>@usuario.empresa</td>
-                                    <td>@usuario.contactoPrincipal</td>
-                                    <td>@usuario.detalleContacto</td>
-                                }
-                                <td>
-                                    <button class="btn btn-warning btn-sm"
+                            <td class="col-2">
+                                <div class="d-flex align-items-end gap-2">
+                                    <button class="btn-view d-flex align-items-center justify-content-center"
+                                            style="width: 100px;"
                                             data-bs-toggle="modal"
                                             data-bs-target="#editUsuarioModal"
                                             data-id="@usuario.usuarioId"
@@ -101,194 +113,436 @@
                                             data-tipousuario="@usuario.tipoUsuario.ToString().ToLower()"
                                             data-activo="@usuario.activo.ToString().ToLower()"
                                             data-empresa="@usuario.empresa"
-                                            data-contactoPrincipal="@usuario.contactoPrincipal"
-                                            data-detalleContacto="@usuario.detalleContacto"
+                                            data-contactoprincipal="@usuario.contactoPrincipal"
+                                            data-detallecontacto="@usuario.detalleContacto"
                                             onclick="cargarDatosModal(this)">
                                         Editar
                                     </button>
-                                    
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </main>
-
-        <!-- Modal Crear Usuario -->
-        <div class="modal fade" id="crearUsuarioModal" tabindex="-1" aria-labelledby="crearUsuarioModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form asp-action="Create" method="post">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="crearUsuarioModalLabel">Nuevo Usuario</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label class="form-label">Nombre</label>
-                                <input type="text" name="nombre" class="form-control" required />
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Correo</label>
-                                <input type="email" name="correo" class="form-control" required />
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Teléfono</label>
-                                <input type="text" name="telefono" class="form-control" required />
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Contraseña</label>
-                                <input type="text" name="contrasenia" class="form-control" required />
-                            </div>
-                            <div class="form-group">
-                                <label for="rolId">Rol</label>
-                                <select name="rolId" class="form-control" required>
-                                    <option value="">-- Selecciona un rol --</option>
-                                    @foreach (var rol in ViewBag.Roles)
-                                    {
-                                        <option value="@rol.rolId">@rol.nombre</option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="tipoUsuario">Tipo de Usuario</label>
-                                <select name="tipoUsuario" id="tipoUsuarioSelect" class="form-select" required onchange="toggleCamposExterno(this.value)">
-                                    <option value="true">Interno</option>
-                                    <option value="false">Externo</option>
-                                </select>
-                            </div>
-
-                            <!-- Campos específicos para externos (ocultos inicialmente) -->
-                            <div id="camposExternos" style="display: none;">
-                                <div class="form-group">
-                                    <label class="form-label">Empresa</label>
-                                    <input type="text" name="empresa" class="form-control" />
                                 </div>
-                                <div class="form-group">
-                                    <label class="form-label">Contacto Principal</label>
-                                    <input type="text" name="contactoPrincipal" class="form-control" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Detalle Contacto</label>
-                                    <input type="text" name="detalleContacto" class="form-control" />
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="activo">Estado</label>
-                                <select name="activo" class="form-select" required>
-                                    <option value="true">Activo</option>
-                                    <option value="false">Inactivo</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">Guardar</button>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal Editar Usuario -->
-        <div class="modal fade" id="editUsuarioModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form asp-action="Edit" method="post">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Editar Usuario</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <input type="hidden" name="usuarioId" id="editUsuarioId" />
-                            <div class="form-group">
-                                <label>Nombre</label>
-                                <input type="text" name="nombre" id="editNombre" class="form-control" />
-                            </div>
-                            <div class="form-group">
-                                <label>Correo</label>
-                                <input type="email" name="correo" id="editCorreo" class="form-control" />
-                            </div>
-                            <div class="form-group">
-                                <label>Teléfono</label>
-                                <input type="text" name="telefono" id="editTelefono" class="form-control" />
-                            </div>
-                            <div class="form-group">
-                                <label>Contraseña</label>
-                                <input type="text" name="contrasenia" id="editContrasenia" class="form-control" />
-                            </div>
-                            <input type="hidden" name="rolId" id="editRolId" />
-                            <div class="form-group">
-                                <label>Rol</label>
-                                <select class="form-control" id="editRolDisplay" disabled>
-                                    @foreach (var rol in ViewBag.Roles as List<rol>)
-                                    {
-                                        <option value="@rol.rolId">@rol.nombre</option>
-                                    }
-                                </select>
-                            </div>
-                            <input type="hidden" name="tipoUsuario" id="editTipoUsuarioHidden" />
-                            <div class="form-group">
-                                <label>Tipo de Usuario</label>
-                                <select class="form-control" id="editTipoUsuarioDisplay" disabled>
-                                    @foreach (var item in ViewBag.TiposUsuario as List<SelectListItem>)
-                                    {
-                                        if (item.Value != "") // Excluir la opción "Todos"
-                                        {
-                                            <option value="@item.Value">@item.Text</option>
-                                        }
-                                    }
-                                </select>
-                            </div>
-
-                            <!-- Campos específicos para externos (edición) -->
-                            <div id="editCamposExternos" style="display: none;">
-                                <div class="form-group">
-                                    <label>Empresa</label>
-                                    <input type="text" name="empresa" id="editEmpresa" class="form-control" />
-                                </div>
-                                <div class="form-group">
-                                    <label>Contacto Principal</label>
-                                    <input type="text" name="contactoPrincipal" id="editContactoPrincipal" class="form-control" />
-                                </div>
-                                <div class="form-group">
-                                    <label>Detalle Contacto</label>
-                                    <input type="text" name="detalleContacto" id="editDetalleContacto" class="form-control" />
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Estado</label>
-                                <select class="form-control" name="activo" id="editEstado">
-                                    @foreach (var item in ViewBag.Estados as List<SelectListItem>)
-                                    {
-                                        <option value="@item.Value">@item.Text</option>
-                                    }
-                                </select>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
+<!-- Modal Crear Usuario -->
+<div class="modal fade" id="crearUsuarioModal" tabindex="-1" aria-labelledby="crearUsuarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; padding: 2rem 2.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <span class="close" data-bs-dismiss="modal" style="font-size: 1.5rem; float: right; cursor: pointer;">&times;</span>
+
+            <h3 class="profile-section-title mb-4" style="color: var(--primary-color); font-weight: bold; display: flex; align-items: center;">
+                <i class="fas fa-user-plus" style="margin-right: 0.5rem;"></i>
+                Nuevo Usuario
+            </h3>
+
+            <form asp-action="Create" method="post" class="profile-form">
+                @Html.AntiForgeryToken()
+
+                <div class="profile-field mb-4">
+                    <label for="nombre" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
+                        Nombre
+                    </label>
+                    <input type="text" name="nombre" class="form-control profile-input" required />
+                </div>
+
+                <div class="profile-field mb-4">
+                    <label for="correo" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-envelope" style="margin-right: 0.5rem;"></i>
+                        Correo
+                    </label>
+                    <input type="email" name="correo" class="form-control profile-input" required />
+                </div>
+
+                <div class="profile-field mb-4">
+                    <label for="telefono" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-phone" style="margin-right: 0.5rem;"></i>
+                        Teléfono
+                    </label>
+                    <input type="text" name="telefono" class="form-control profile-input" required />
+                </div>
+
+                <div class="profile-field mb-4">
+                    <label for="contrasenia" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-key" style="margin-right: 0.5rem;"></i>
+                        Contraseña
+                    </label>
+                    <input type="text" name="contrasenia" class="form-control profile-input" required />
+                </div>
+
+                <div class="profile-field mb-4">
+                    <label for="rolId" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-user-tag" style="margin-right: 0.5rem;"></i>
+                        Rol
+                    </label>
+                    <select name="rolId" class="form-control profile-input" required>
+                        <option value="">-- Selecciona un rol --</option>
+                        @foreach (var rol in ViewBag.Roles)
+                        {
+                            <option value="@rol.rolId">@rol.nombre</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="profile-field mb-4">
+                    <label for="tipoUsuario" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-users" style="margin-right: 0.5rem;"></i>
+                        Tipo de Usuario
+                    </label>
+                    <select name="tipoUsuario" id="tipoUsuarioSelect" class="form-control profile-input" required onchange="toggleCamposExterno(this.value)">
+                        <option value="true">Interno</option>
+                        <option value="false">Externo</option>
+                    </select>
+                </div>
+
+                <!-- Campos específicos para externos -->
+                <div id="camposExternos" style="display: none;">
+                    <div class="profile-field mb-4">
+                        <label for="empresa" class="profile-label" style="font-weight: 500;">
+                            <i class="fas fa-building" style="margin-right: 0.5rem;"></i>
+                            Empresa
+                        </label>
+                        <input type="text" name="empresa" class="form-control profile-input" />
+                    </div>
+
+                    <div class="profile-field mb-4">
+                        <label for="contactoPrincipal" class="profile-label" style="font-weight: 500;">
+                            <i class="fas fa-id-card" style="margin-right: 0.5rem;"></i>
+                            Contacto Principal
+                        </label>
+                        <input type="text" name="contactoPrincipal" class="form-control profile-input" />
+                    </div>
+
+                    <div class="profile-field mb-4">
+                        <label for="detalleContacto" class="profile-label" style="font-weight: 500;">
+                            <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
+                            Detalle Contacto
+                        </label>
+                        <input type="text" name="detalleContacto" class="form-control profile-input" />
+                    </div>
+                </div>
+
+                <div class="profile-field mb-4">
+                    <label for="activo" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+                        Estado
+                    </label>
+                    <select name="activo" class="form-control profile-input" required>
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </select>
+                </div>
+
+                <div class="profile-actions mt-5 d-flex justify-content-end gap-3">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 8px 20px; border-radius: 25px;">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="background-color: var(--primary-color); color: white; padding: 8px 20px; border-radius: 25px; border: none;">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Usuario -->
+<div class="modal fade" id="editUsuarioModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; padding: 2rem 2.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            <span class="close" data-bs-dismiss="modal" style="font-size: 1.5rem; float: right; cursor: pointer;">&times;</span>
+
+            <h3 class="profile-section-title mb-4" style="color: var(--primary-color); font-weight: bold; display: flex; align-items: center;">
+                <i class="fas fa-user-edit" style="margin-right: 0.5rem;"></i>
+                Editar Usuario
+            </h3>
+
+            <form asp-action="Edit" method="post" class="profile-form">
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" name="usuarioId" id="editUsuarioId" />
+
+                <div class="profile-field mb-4">
+                    <label for="editNombre" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-user" style="margin-right: 0.5rem;"></i>
+                        Nombre
+                    </label>
+                    <input type="text" name="nombre" id="editNombre" class="form-control profile-input" required />
+                </div>
+
+                <div class="profile-field mb-4">
+                    <label for="editCorreo" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-envelope" style="margin-right: 0.5rem;"></i>
+                        Correo
+                    </label>
+                    <input type="email" name="correo" id="editCorreo" class="form-control profile-input" required />
+                </div>
+
+                <div class="profile-field mb-4">
+                    <label for="editTelefono" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-phone" style="margin-right: 0.5rem;"></i>
+                        Teléfono
+                    </label>
+                    <input type="text" name="telefono" id="editTelefono" class="form-control profile-input" required />
+                </div>
+
+                <div class="profile-field mb-4">
+                    <label for="editContrasenia" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-key" style="margin-right: 0.5rem;"></i>
+                        Contraseña
+                    </label>
+                    <input type="text" name="contrasenia" id="editContrasenia" class="form-control profile-input" required />
+                </div>
+
+                <div class="profile-field mb-4">
+                    <label for="editRolDisplay" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-user-tag" style="margin-right: 0.5rem;"></i>
+                        Rol
+                    </label>
+                    <select name="rolId" id="editRolDisplay" class="form-control profile-input" required>
+                        @foreach (var rol in ViewBag.Roles as List<rol>)
+                        {
+                            <option value="@rol.rolId">@rol.nombre</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="profile-field mb-4">
+                    <label for="editTipoUsuarioDisplay" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-users" style="margin-right: 0.5rem;"></i>
+                        Tipo de Usuario
+                    </label>
+                    <select id="editTipoUsuarioDisplay" class="form-control profile-input" disabled>
+                        @foreach (var item in ViewBag.TiposUsuario as List<SelectListItem>)
+                        {
+                            if (item.Value != "")
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    </select>
+                    <input type="hidden" name="tipoUsuario" id="editTipoUsuarioHidden" />
+                </div>
+
+                <!-- Campos específicos para externos (edición) -->
+                <div id="editCamposExternos" style="display: none;">
+                    <div class="profile-field mb-4">
+                        <label for="editEmpresa" class="profile-label" style="font-weight: 500;">
+                            <i class="fas fa-building" style="margin-right: 0.5rem;"></i>
+                            Empresa
+                        </label>
+                        <input type="text" name="empresa" id="editEmpresa" class="form-control profile-input" />
+                    </div>
+
+                    <div class="profile-field mb-4">
+                        <label for="editContactoPrincipal" class="profile-label" style="font-weight: 500;">
+                            <i class="fas fa-id-card" style="margin-right: 0.5rem;"></i>
+                            Contacto Principal
+                        </label>
+                        <input type="text" name="contactoPrincipal" id="editContactoPrincipal" class="form-control profile-input" />
+                    </div>
+
+                    <div class="profile-field mb-4">
+                        <label for="editDetalleContacto" class="profile-label" style="font-weight: 500;">
+                            <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
+                            Detalle Contacto
+                        </label>
+                        <input type="text" name="detalleContacto" id="editDetalleContacto" class="form-control profile-input" />
+                    </div>
+                </div>
+
+                <div class="profile-field mb-4">
+                    <label for="editEstado" class="profile-label" style="font-weight: 500;">
+                        <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+                        Estado
+                    </label>
+                    <select name="activo" id="editEstado" class="form-control profile-input" required>
+                        @foreach (var item in ViewBag.Estados as List<SelectListItem>)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="profile-actions mt-5 d-flex justify-content-end gap-3">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 8px 20px; border-radius: 25px;">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="background-color: var(--primary-color); color: white; padding: 8px 20px; border-radius: 25px; border: none;">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --pending-bg: #dbeafe;
+        --pending-accent: #3b82f6;
+        --primary-color: #4e73df;
+        --text-primary: #2d3748;
+    }
+
+    .dashboard-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem;
+    }
+
+    .tasks-section {
+        background: linear-gradient(135deg, var(--pending-bg) 0%, #bfdbfe 100%);
+        border: 2px solid var(--pending-accent);
+        border-radius: 1.5rem;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        padding: 0px;
+    }
+
+    .modern-table {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: none;
+        border: none;
+        background: white;
+        margin: 0;
+        width: 100%;
+    }
+
+        .modern-table thead th {
+            background-color: #f8f9fa;
+            border: none;
+            padding: 16px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modern-table tbody td {
+            border: none;
+            padding: 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .modern-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .modern-table tbody tr:hover {
+            background-color: #f8f9fa;
+            transition: background-color 0.2s ease;
+        }
+
+    .btn-view {
+        background-color: var(--primary-color);
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s ease;
+    }
+
+        .btn-view:hover {
+            background-color: #3a5bc7;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+    .table-container {
+        padding: 0;
+        margin-top: 20px;
+    }
+
+    .modern-table .id-column {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .search-container {
+        position: relative;
+        width: 100%;
+    }
+
+        .search-container input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            font-size: 16px;
+        }
+
+        .search-container .fa-search {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            pointer-events: none;
+        }
+
+    .profile-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .profile-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .profile-label {
+        font-size: 0.9rem;
+        color: #4a5568;
+    }
+
+    .profile-input {
+        padding: 0.75rem 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+        .profile-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.2);
+            outline: none;
+        }
+
+    .profile-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .profile-section-title {
+        font-size: 1.5rem;
+        color: #2d3748;
+        margin-bottom: 1.5rem;
+    }
+</style>
+
 @section Scripts {
     <script>
-        //para la barra de busqueda
-        document.addEventListener('DOMContentLoaded', function() {
+        // Para la barra de búsqueda
+        document.addEventListener('DOMContentLoaded', function () {
             const searchInput = document.getElementById('liveSearchInput');
             const rows = document.querySelectorAll('tbody tr');
-            
-            searchInput.addEventListener('input', function() {
+
+            searchInput.addEventListener('input', function () {
                 const term = this.value.toLowerCase();
-                
+
                 rows.forEach(row => {
                     const text = Array.from(row.cells)
                         .slice(0, 8) // ID(0), Nombre(1), Correo(2), Teléfono(3), Empresa(7)
@@ -297,9 +551,7 @@
                     row.style.display = text.includes(term) ? '' : 'none';
                 });
             });
-            
         });
-
 
         function cargarDatosModal(btn) {
             document.getElementById('editUsuarioId').value = btn.dataset.id;
@@ -307,17 +559,11 @@
             document.getElementById('editCorreo').value = btn.dataset.correo;
             document.getElementById('editTelefono').value = btn.dataset.telefono;
             document.getElementById('editContrasenia').value = btn.dataset.contrasenia;
-
-
-            document.getElementById('editRolId').value = btn.dataset.rolid;
             document.getElementById('editRolDisplay').value = btn.dataset.rolid;
-
-
 
             const tipoUsuarioValue = btn.dataset.tipousuario === 'true' ? 'true' : 'false';
             document.getElementById('editTipoUsuarioHidden').value = tipoUsuarioValue;
             document.getElementById('editTipoUsuarioDisplay').value = tipoUsuarioValue;
-
 
             document.getElementById('editEstado').value = btn.dataset.activo === 'true' ? 'true' : 'false';
 
@@ -349,15 +595,6 @@
             }
         }
 
-        function toggleEditCamposExterno(value) {
-            const camposExternos = document.getElementById('editCamposExternos');
-            if (value === 'false') {
-                camposExternos.style.display = 'block';
-            } else {
-                camposExternos.style.display = 'none';
-            }
-        }
-
         // Inicializar campos según el tipo seleccionado al cargar el modal de creación
         document.addEventListener('DOMContentLoaded', function () {
             const tipoUsuarioSelect = document.getElementById('tipoUsuarioSelect');
@@ -365,6 +602,5 @@
                 toggleCamposExterno(tipoUsuarioSelect.value);
             }
         });
-        
     </script>
 }
