@@ -454,9 +454,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         }
 
 
-
-        #region Emmer
-
         // Gestión de Tickets
         public IActionResult GestionTickets()
         {
@@ -799,10 +796,6 @@ namespace Proyecto_DAW_Grupo_10.Controllers
 
             return RedirectToAction("EditarTicket", new { id = tarea.ticketId });
         }
-
-
-
-        #endregion
 
     }
 }
