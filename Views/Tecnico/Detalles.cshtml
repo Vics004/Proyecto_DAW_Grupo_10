@@ -213,7 +213,7 @@
                                                             <span class="comment-author">@actividad.Usuario</span>
                                                             <span class="comment-date">@actividad.Fecha.ToString("dd/MM/yyyy HH:mm")</span>
                                                             <span class="activity-type @(actividad.Tipo == "Comentario" ? "comment-type" : "status-type")">
-                                                                @actividad.Tipo @(actividad.TareaId != null ? " De Ticket" : "")
+                                                                @actividad.Tipo @(actividad.TareaId == null ? " De Ticket" : "")
                                                             </span>
                                                         </div>
                                                         <div class="comment-body">
@@ -281,54 +281,68 @@
 </div>
 
 <script>
-     function subirArchivo(input) {
-            if (input.files && input.files[0]) {
-                // Mostrar indicador de carga
-                const originalText = document.querySelector('.btn-view').innerHTML;
-                const uploadBtn = document.querySelector('.btn-view');
-                uploadBtn.innerHTML = `
-                    <svg class="animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                    </svg>
-                    Subiendo...
-                `;
-                uploadBtn.disabled = true;
+    function subirArchivo(input) {
+        if (input.files && input.files[0]) {
+            // Guardar posición actual antes de subir
+            const scrollPosition = window.pageYOffset;
+            sessionStorage.setItem('scrollPosition', scrollPosition);
 
-                const formData = new FormData();
-                formData.append('ticketId', '@ViewBag.ticketID');
-                formData.append('archivo', input.files[0]);
+            // Mostrar indicador de carga
+            const originalText = document.querySelector('.btn-view').innerHTML;
+            const uploadBtn = document.querySelector('.btn-view');
+            uploadBtn.innerHTML = `
+                <svg class="animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Subiendo...
+            `;
+            uploadBtn.disabled = true;
 
-                fetch('@Url.Action("SubirArchivo", "Cliente")', {
-                    method: 'POST',
-                    body: formData
-                }).then(response => {
-                    if (response.ok) {
-                        // Mostrar éxito antes de recargar
-                        uploadBtn.innerHTML = `
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            ¡Subido!
-                        `;
-                        setTimeout(() => location.reload(), 1000);
-                    } else {
-                        uploadBtn.innerHTML = originalText;
-                        uploadBtn.disabled = false;
-                        alert('Error al subir el archivo');
-                    }
-                }).catch(error => {
+            const formData = new FormData();
+            formData.append('ticketId', '@ViewBag.ticketID');
+            formData.append('archivo', input.files[0]);
+
+            fetch('@Url.Action("SubirArchivo", "Cliente")', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    uploadBtn.innerHTML = `
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        ¡Subido!
+                    `;
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
                     uploadBtn.innerHTML = originalText;
                     uploadBtn.disabled = false;
                     alert('Error al subir el archivo');
-                });
-            }
+                }
+            }).catch(error => {
+                uploadBtn.innerHTML = originalText;
+                uploadBtn.disabled = false;
+                alert('Error al subir el archivo');
+            });
         }
-    function toggleComentario() {
-        const form = document.getElementById("formComentario");
-        form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
     }
 
+    // Función para restaurar posición al cargar la página
+    function restaurarPosicionScroll() {
+        const scrollPosition = sessionStorage.getItem('scrollPosition');
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition));
+            sessionStorage.removeItem('scrollPosition');
+        }
+    }
+
+    // Función para comentarios
     document.addEventListener("DOMContentLoaded", function () {
+        // Restaurar posición al cargar
+        restaurarPosicionScroll();
+
         // Initialize feather icons
         if (typeof feather !== 'undefined') {
             feather.replace();
@@ -338,6 +352,10 @@
         if (form) {
             form.addEventListener("submit", function (e) {
                 e.preventDefault();
+
+                // Guardar posición antes de enviar comentario
+                const scrollPosition = window.pageYOffset;
+                sessionStorage.setItem('scrollPosition', scrollPosition);
 
                 const formData = new FormData(form);
                 fetch('@Url.Action("SubirComentario", "Tecnico")', {
@@ -353,6 +371,10 @@
             });
         }
     });
+    function toggleComentario() {
+        const form = document.getElementById("formComentario");
+        form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
+    }
 </script>
 
 <style>
