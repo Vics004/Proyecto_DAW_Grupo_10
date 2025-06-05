@@ -366,12 +366,68 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                      * 
                      * 
                      * 
-                     *              Espacio para logica email de Tecnico a admin
+                     *Espacio para logica email de Tecnico a admin
                      * 
                      * 
                      * Tambien notificacion de cambio de estado del ticket ( se modifcara para que el usuario entienda que tiene que revisar y confirmar)
                      * 
                      */
+                    //Email de Técnico a Administrador
+                    int usuarioId = HttpContext.Session.GetInt32("usuarioId") ?? 0;
+                    var usuarioTecnico = _ticketsDbContext.usuario.Find(usuarioId);
+
+             
+                    var admins = (from u in _ticketsDbContext.usuario
+                                  join r in _ticketsDbContext.rol on u.rolId equals r.rolId
+                                  where r.nombre == "Administrador" && u.activo == true
+                                  select u).ToList();
+
+               
+                    string fecha = DateTime.Now.ToString("dd/MM/yyyy");
+                    string hora = DateTime.Now.ToString("HH:mm");
+
+                   
+                    string descripcionProblema = ticket.descripcion;
+                    string asuntoCorreo = $"Ticket #{ticket.ticketId} en espera del cliente";
+
+                   
+                    foreach (var admin in admins)
+                    {
+                        string cuerpoCorreo = $"Estimado/a Administrador/a {admin.nombre},\n\n" +
+                                              $"Le informamos que el técnico {usuarioTecnico.nombre} ha marcado el ticket #{ticket.ticketId} como: En espera del cliente.\n\n" +
+                                              $"Esto indica que ya se ha brindado una resolución y se espera que el cliente la revise.\n\n" +
+                                              $"Descripción del ticket:{descripcionProblema}\n" +
+                                              $"Fecha: {fecha} Hora: {hora}\n\n" +
+                                              $"Le invitamos a ingresar al sistema para dar seguimiento.\n\n" +
+                                              $"Saludos,\nEquipo de Ayudín";
+
+                        correo correoAdmin = new correo(_configuration);
+                        correoAdmin.enviar(
+                            destinatario: admin.correo,
+                            asunto: asuntoCorreo,
+                            cuerpo: cuerpoCorreo
+                        );
+                    }
+
+                    //Email al cliente sobre el cambio de estado y espera de su respuesta
+                    var cliente = _ticketsDbContext.usuario.Find(ticket.usuarioCreadorId);
+                    string asuntoCliente = $"¿Nos ayudas con tu ticket #{ticket.ticketId}?";
+                    string cuerpoCliente = $"Hola {cliente.nombre},\n\n" +
+                        $"Hemos finalizado las tareas relacionadas con tu ticket #{ticket.ticketId}. Un administrador se comunicará contigo por medio de una llamada para confirmar si la solución fue satisfactoria.\n\n" +
+                        $"Descripción del ticket: {ticket.descripcion}\n\n" +
+                        "Gracias por utilizar Ayudín.\n\n" +
+                        "Saludos,\nEquipo de Ayudín";
+
+                    correo enviarCorreoCliente = new correo(_configuration);
+                    enviarCorreoCliente.enviar(
+                        destinatario: cliente.correo,
+                        asunto: asuntoCliente,
+                        cuerpo: cuerpoCliente
+                    );
+
+
+
+
                     // Registrar el cambio de estado en el historial
                     var momentaneo2 = ticket.estadoId;
                     ticket.estadoId = idEstado1;
