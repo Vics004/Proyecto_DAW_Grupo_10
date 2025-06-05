@@ -173,7 +173,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         }
 
         [Autenticacion]
-        public IActionResult MisTickets(int? estadoFiltro, int? prioridadFiltro)
+        public IActionResult MisTickets(int? estadoFiltro, int? prioridadFiltro, DateTime? fechaInicio, DateTime? fechaFin, DateTime? fechaEspecifica)
         {
             // Obtener ID del cliente de la sesión
             var clienteId = HttpContext.Session.GetInt32("usuarioId");
@@ -211,6 +211,24 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                 ticketsQuery = ticketsQuery.Where(t => t.prioridadId == prioridadFiltro.Value);
             }
 
+            // Filtro por fecha específica
+            if (fechaEspecifica.HasValue)
+            {
+                ticketsQuery = ticketsQuery.Where(t => t.fechaApertura.Date == fechaEspecifica.Value.Date);
+            }
+            // Filtro por rango de fechas (solo si no hay fecha específica)
+            else if (fechaInicio.HasValue || fechaFin.HasValue)
+            {
+                if (fechaInicio.HasValue)
+                {
+                    ticketsQuery = ticketsQuery.Where(t => t.fechaApertura >= fechaInicio.Value.Date);
+                }
+                if (fechaFin.HasValue)
+                {
+                    ticketsQuery = ticketsQuery.Where(t => t.fechaApertura <= fechaFin.Value.Date.AddDays(1).AddTicks(-1));
+                }
+            }
+
             // Ejecutar consulta y ordenar por fecha
             var tickets = ticketsQuery.OrderByDescending(t => t.fechaApertura).ToList();
 
@@ -220,12 +238,15 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             ViewBag.Prioridades = prioridades;
             ViewBag.EstadoSeleccionado = estadoFiltro;
             ViewBag.PrioridadSeleccionada = prioridadFiltro;
+            ViewBag.FechaInicio = fechaInicio?.ToString("yyyy-MM-dd");
+            ViewBag.FechaFin = fechaFin?.ToString("yyyy-MM-dd");
+            ViewBag.FechaEspecifica = fechaEspecifica?.ToString("yyyy-MM-dd");
 
             return View();
         }
 
         [Autenticacion]
-        public IActionResult GenerarPDFMisTickets(int? estadoFiltro, int? prioridadFiltro)
+        public IActionResult GenerarPDFMisTickets(int? estadoFiltro, int? prioridadFiltro, DateTime? fechaInicio, DateTime? fechaFin, DateTime? fechaEspecifica)
         {
             // Obtener ID del cliente de la sesión
             var clienteId = HttpContext.Session.GetInt32("usuarioId");
@@ -257,6 +278,24 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             if (prioridadFiltro.HasValue)
             {
                 ticketsQuery = ticketsQuery.Where(t => t.prioridadId == prioridadFiltro.Value);
+            }
+
+            // Filtro por fecha específica
+            if (fechaEspecifica.HasValue)
+            {
+                ticketsQuery = ticketsQuery.Where(t => t.fechaApertura.Date == fechaEspecifica.Value.Date);
+            }
+            // Filtro por rango de fechas (solo si no hay fecha específica)
+            else if (fechaInicio.HasValue || fechaFin.HasValue)
+            {
+                if (fechaInicio.HasValue)
+                {
+                    ticketsQuery = ticketsQuery.Where(t => t.fechaApertura >= fechaInicio.Value.Date);
+                }
+                if (fechaFin.HasValue)
+                {
+                    ticketsQuery = ticketsQuery.Where(t => t.fechaApertura <= fechaFin.Value.Date.AddDays(1).AddTicks(-1));
+                }
             }
 
             // Ejecutar consulta y ordenar por fecha
@@ -291,16 +330,32 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             if (estadoFiltro.HasValue)
             {
                 var estadoNombre = _context.estado.FirstOrDefault(e => e.estadoId == estadoFiltro.Value)?.nombre;
-                filtros.Add(new Chunk($" Estado: {estadoNombre}", bodyFont));
+                filtros.Add(new Chunk($" Estado: {estadoNombre}   ", bodyFont));
             }
 
             if (prioridadFiltro.HasValue)
             {
                 var prioridadNombre = _context.prioridad.FirstOrDefault(p => p.prioridadId == prioridadFiltro.Value)?.nombre;
-                filtros.Add(new Chunk($" Prioridad: {prioridadNombre}", bodyFont));
+                filtros.Add(new Chunk($" Prioridad: {prioridadNombre}   ", bodyFont));
             }
 
-            if (!estadoFiltro.HasValue && !prioridadFiltro.HasValue)
+            if (fechaEspecifica.HasValue)
+            {
+                filtros.Add(new Chunk($" Fecha: {fechaEspecifica.Value.ToString("dd/MM/yyyy")}   ", bodyFont));
+            }
+            else
+            {
+                if (fechaInicio.HasValue)
+                {
+                    filtros.Add(new Chunk($" Desde: {fechaInicio.Value.ToString("dd/MM/yyyy")}", bodyFont));
+                }
+                if (fechaFin.HasValue)
+                {
+                    filtros.Add(new Chunk($" Hasta: {fechaFin.Value.ToString("dd/MM/yyyy")}", bodyFont));
+                }
+            }
+
+            if (!estadoFiltro.HasValue && !prioridadFiltro.HasValue && !fechaEspecifica.HasValue && !fechaInicio.HasValue && !fechaFin.HasValue)
             {
                 filtros.Add(new Chunk(" Ninguno", bodyFont));
             }
@@ -353,6 +408,21 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             if (prioridadFiltro.HasValue)
             {
                 fileName += $"_Prioridad{prioridadFiltro.Value}";
+            }
+            if (fechaEspecifica.HasValue)
+            {
+                fileName += $"_Fecha{fechaEspecifica.Value:yyyyMMdd}";
+            }
+            else
+            {
+                if (fechaInicio.HasValue)
+                {
+                    fileName += $"_Desde{fechaInicio.Value:yyyyMMdd}";
+                }
+                if (fechaFin.HasValue)
+                {
+                    fileName += $"_Hasta{fechaFin.Value:yyyyMMdd}";
+                }
             }
             fileName += ".pdf";
 
