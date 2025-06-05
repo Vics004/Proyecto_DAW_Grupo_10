@@ -1,0 +1,266 @@
+﻿@{
+    ViewData["Title"] = "Gestión de Tickets";
+    var ticketsAsignados = ViewBag.TicketsAsignados as List<Proyecto_DAW_Grupo_10.Models.ticket>;
+    var ticketsSinAsignar = ViewBag.TicketsSinAsignar as List<Proyecto_DAW_Grupo_10.Models.ticket>;
+}
+
+<div class="container-fluid">
+    <div class="row">
+
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 main-content">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+
+                <h1 class="h2">Gestión de Tickets</h1>
+            </div>
+
+            <!-- Tickets Asignados -->
+            <div class="card mb-5">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Tickets Asignados</h5>
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID Ticket</th>
+                                <th>Problema</th>
+                                <th>Categoría</th>
+                                <th>Fecha de Asignación</th>
+                                <th>Estado</th>
+                                <th>Prioridad</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in ticketsAsignados)
+                            {
+                                var primeraTarea = ticket.tarea?.OrderBy(t => t.fecha).FirstOrDefault();
+                                <tr>
+                                    <td>@ticket.ticketId</td>
+                                    <td>@ticket.problema?.nombre</td>
+                                    <td>@ticket.problema?.categoria?.nombre</td>
+                                    <td>@primeraTarea?.fecha.ToString("dd/MM/yyyy")</td>
+                                    <td>@ticket.estado?.nombre</td>
+                                    <td>@ticket.prioridad?.nombre</td>
+                                    <td>
+                                        <a href="/Administrador/EditarTicket/@ticket.ticketId" class="btn btn-sm btn-warning">Editar</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tickets Sin Asignar -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Tickets Sin Asignar</h5>
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID Ticket</th>
+                                <th>Problema</th>
+                                <th>Categoría</th>
+                                <th>Fecha de Creación</th>
+                                <th>Prioridad</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in ticketsSinAsignar)
+                            {
+                                <tr>
+                                    <td>@ticket.ticketId</td>
+                                    <td>@ticket.problema?.nombre</td>
+                                    <td>@ticket.problema?.categoria?.nombre</td>
+                                    <td>@ticket.fechaApertura.ToString("dd/MM/yyyy")</td>
+                                    <td>@ticket.prioridad?.nombre</td>
+                                    <td>
+                                        <a class="btn btn-sm btn-success" href="/Administrador/AsignarTicket/@ticket.ticketId">Asignar</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modales -->
+<div class="modal fade" id="modalEditar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg"><div class="modal-content"></div></div>
+</div>
+<div class="modal fade" id="modalTareas" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl"><div class="modal-content"></div></div>
+</div>
+<div class="modal fade" id="modalAsignar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg"><div class="modal-content"></div></div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            feather.replace();
+            const modales = ['modalEditar', 'modalTareas', 'modalAsignar'];
+            modales.forEach(id => {
+                const modal = document.getElementById(id);
+                modal?.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const ticketId = button.getAttribute('data-id');
+                    const modalContent = modal.querySelector('.modal-content');
+                    fetch(`/${id.replace('modal', '')}/${ticketId}`)
+                        .then(res => res.text())
+                        .then(html => modalContent.innerHTML = html);
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    :root {
+        --primary-color: #6366f1;
+        --primary-dark: #4f46e5;
+        --secondary-color: #64748b;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --light-gray: #f8fafc;
+        --medium-gray: #e2e8f0;
+        --dark-gray: #475569;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
+
+
+    .company-header {
+        padding: 1.5rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 1rem;
+    }
+
+    .company-name {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin: 0;
+    }
+
+
+    /* Main Content Adjustments */
+    main {
+        background-color: var(--light-gray);
+        min-height: calc(100vh - 56px);
+    }
+
+    /* Card Styles */
+    .card {
+        border-radius: 0.5rem;
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+    .card-header {
+        background-color: white;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    /* Progress Bars */
+    .progress {
+        height: 0.5rem;
+        border-radius: 0.25rem;
+        background-color: var(--medium-gray);
+    }
+
+    .progress-bar {
+        border-radius: 0.25rem;
+    }
+
+    /* Responsive Adjustments */
+    @@media (max-width: 768px) {
+        .sidebar {
+            position: fixed;
+            z-index: 1000;
+            height: 100vh;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+        main {
+            margin-left: 0;
+        }
+    }
+
+    /* Icon Colors */
+    .fa-circle.text-primary {
+        color: var(--primary-color);
+    }
+
+    .fa-circle.text-warning {
+        color: var(--warning-color);
+    }
+
+    .fa-circle.text-success {
+        color: var(--success-color);
+    }
+
+    /* Text Styles */
+    .text-gray-800 {
+        color: var(--text-primary);
+    }
+
+    .text-primary {
+        color: var(--primary-color) !important;
+    }
+
+    .text-warning {
+        color: var(--warning-color) !important;
+    }
+
+    .text-success {
+        color: var(--success-color) !important;
+    }
+
+    /* Border Colors */
+    .border-left-primary {
+        border-left: 0.25rem solid var(--primary-color) !important;
+    }
+
+    .border-left-warning {
+        border-left: 0.25rem solid var(--warning-color) !important;
+    }
+
+    .border-left-success {
+        border-left: 0.25rem solid var(--success-color) !important;
+    }
+
+    /* Shadow Utilities */
+    .shadow {
+        box-shadow: var(--shadow-sm) !important;
+    }
+
+    .shadow-lg {
+        box-shadow: var(--shadow-lg) !important;
+    }
+</style>

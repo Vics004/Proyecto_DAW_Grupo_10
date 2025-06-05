@@ -1,0 +1,87 @@
+﻿@model Proyecto_DAW_Grupo_10.Models.tarea
+@{
+    ViewBag.Title = "Editar Tarea";
+    var tecnicos = ViewBag.Tecnicos as List<Proyecto_DAW_Grupo_10.ViewModels.TecnicoViewModel>;
+    var categorias = ViewBag.Categorias as List<Proyecto_DAW_Grupo_10.Models.categoria>;
+}
+
+<h2>Editar Tarea</h2>
+
+<form asp-action="EditarTarea" method="post">
+    <input type="hidden" asp-for="tareaId" />
+    <input type="hidden" id="tecnicoId" name="tecnicoId" value="@Model.usuarioAsignadoId" />
+
+    <div class="form-group">
+        <label asp-for="descripcion" class="control-label">Descripción</label>
+        <input asp-for="descripcion" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="estadoId" class="control-label">Estado</label>
+        <select asp-for="estadoId" class="form-control">
+            @foreach (var estado in ViewBag.Estados)
+            {
+                <option value="@estado.estadoId">@estado.nombre</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="categoriaFiltro" class="form-label">Filtrar por categoría</label>
+        <select id="categoriaFiltro" class="form-select" onchange="filtrarTabla()">
+            <option value="">Todas</option>
+            @foreach (var categoria in categorias)
+            {
+                <option value="@categoria.categoriaId">@categoria.nombre</option>
+            }
+        </select>
+    </div>
+    <input type="hidden" id="tecnicoId" name="tecnicoId" />
+
+    <table class="table table-bordered table-hover" id="tablaTecnicos">
+        <thead class="table-light">
+            <tr>
+                <th>#Empleado</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Total tickets activos</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tecnico in tecnicos)
+            {
+                <tr data-categoria="@tecnico.categoriaId">
+                    <td>@tecnico.usuarioId</td>
+                    <td>@tecnico.nombre</td>
+                    <td>@tecnico.categoriaNombre</td>
+                    <td>@tecnico.TicketsActivos</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-primary" onclick="seleccionarTecnico(@tecnico.usuarioId, '@tecnico.nombre')">Seleccionar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-success">Guardar cambios</button>
+    <a asp-action="EditarTicket" asp-route-id="@Model.ticketId" class="btn btn-secondary">Cancelar</a>
+</form>
+
+@section Scripts {
+    <script>
+        function filtrarTabla() {
+            var filtro = document.getElementById("categoriaFiltro").value;
+            var filas = document.querySelectorAll("#tablaTecnicos tbody tr");
+            filas.forEach(fila => {
+                var categoria = fila.getAttribute("data-categoria");
+                fila.style.display = (filtro === "" || filtro === categoria) ? "" : "none";
+            });
+        }
+
+        function seleccionarTecnico(id, nombre) {
+            document.getElementById("tecnicoId").value = id;
+            alert("Técnico seleccionado: " + nombre);
+        }
+    </script>
+}

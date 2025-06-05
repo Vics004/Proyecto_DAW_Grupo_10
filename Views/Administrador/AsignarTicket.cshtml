@@ -1,0 +1,160 @@
+﻿@model Proyecto_DAW_Grupo_10.Models.ticket
+
+@{
+    ViewData["Title"] = "Asignar Ticket";
+    var tecnicos = ViewBag.Tecnicos as List<Proyecto_DAW_Grupo_10.ViewModels.TecnicoViewModel>;
+    var categorias = ViewBag.Categorias as List<Proyecto_DAW_Grupo_10.Models.categoria>;
+}
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 main-content">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h2>Asignar Ticket</h2>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Información del Ticket</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Cliente:</strong> @Model.usuarioCreador?.nombre</p>
+                    <p><strong>Fecha de Inicio:</strong> @Model.fechaApertura.ToString("dd/MM/yyyy")</p>
+                    <p><strong>Estado:</strong> @Model.estado?.nombre</p>
+                    <p><strong>Prioridad:</strong> @Model.prioridad?.nombre</p>
+                    <p><strong>Categoría:</strong> @Model.problema?.categoria?.nombre</p>
+                    <div class="card mt-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Archivos Adjuntos</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.archivosAdjuntos != null && Model.archivosAdjuntos.Any())
+                            {
+                                <div class="list-group">
+                                    @foreach (var archivo in Model.archivosAdjuntos)
+                                    {
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>@archivo.nombreArchivo</strong><br />
+                                                <small class="text-muted">@archivo.fechaCarga.ToString("dd/MM/yyyy HH:mm")</small>
+                                            </div>
+                                            <a asp-controller="Cliente" asp-action="DescargarArchivo" asp-route-id="@archivo.archivoId" class="btn btn-sm btn-outline-primary">
+                                                Descargar
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No hay archivos adjuntos</p>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Agregar nueva tarea</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="categoriaFiltro" class="form-label">Filtrar por categoría</label>
+                        <select id="categoriaFiltro" class="form-select" onchange="filtrarTabla()">
+                            <option value="">Todas</option>
+                            @foreach (var categoria in categorias)
+                            {
+                                <option value="@categoria.categoriaId">@categoria.nombre</option>
+                            }
+                        </select>
+                    </div>
+
+                    <table class="table table-bordered table-hover" id="tablaTecnicos">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#Empleado</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Total tickets activos</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tecnico in tecnicos)
+                            {
+                                <tr data-categoria="@tecnico.categoriaId">
+                                    <td>@tecnico.usuarioId</td>
+                                    <td>@tecnico.nombre</td>
+                                    <td>@tecnico.categoriaNombre</td>
+                                    <td>@tecnico.TicketsActivos</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="seleccionarTecnico(@tecnico.usuarioId, '@tecnico.nombre')">Seleccionar</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <form asp-action="CrearTarea" method="post">
+                        <input type="hidden" name="ticketId" value="@Model.ticketId" />
+                        <input type="hidden" id="tecnicoId" name="tecnicoId" />
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción de la Tarea</label>
+                            <textarea id="descripcion" name="descripcion" class="form-control" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success">Agregar</button>
+                        <a href="/Administrador/GestionTickets" class="btn btn-secondary">Volver</a>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            feather.replace();
+        });
+
+        function filtrarTecnicos() {
+            var categoriaId = document.getElementById('categoriaId').value;
+            var tecnicoSelect = document.getElementById('tecnicoId');
+            tecnicoSelect.innerHTML = '';
+
+            fetch(`/Administrador/ObtenerTecnicosPorCategoria?categoriaId=${categoriaId}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(tecnico => {
+                        var option = document.createElement('option');
+                        option.value = tecnico.usuarioId;
+                        option.text = `${tecnico.nombre} (${tecnico.TicketsActivos} tickets activos)`;
+                        tecnicoSelect.appendChild(option);
+                    });
+                });
+        }
+    </script>
+    <script>
+        function filtrarTabla() {
+            var filtro = document.getElementById("categoriaFiltro").value;
+            var filas = document.querySelectorAll("#tablaTecnicos tbody tr");
+
+            filas.forEach(fila => {
+                var categoria = fila.getAttribute("data-categoria");
+                fila.style.display = (filtro === "" || filtro === categoria) ? "" : "none";
+            });
+        }
+
+        function seleccionarTecnico(id, nombre) {
+            document.getElementById("tecnicoId").value = id;
+            alert("Técnico seleccionado: " + nombre);
+        }
+    </script>
+
+}

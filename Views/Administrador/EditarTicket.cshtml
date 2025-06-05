@@ -1,0 +1,355 @@
+﻿@model Proyecto_DAW_Grupo_10.Models.ticket
+
+@{
+    ViewData["Title"] = "Editar Ticket";
+    var tecnicos = ViewBag.Tecnicos as List<Proyecto_DAW_Grupo_10.ViewModels.TecnicoViewModel>;
+    var categorias = ViewBag.Categorias as List<Proyecto_DAW_Grupo_10.Models.categoria>;
+    var estados = ViewBag.Estados as List<Proyecto_DAW_Grupo_10.Models.estado>;
+    var prioridades = ViewBag.Prioridades as List<Proyecto_DAW_Grupo_10.Models.prioridad>;
+}
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4 main-content">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h2>Editar Ticket</h2>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Información del Ticket</h5>
+                </div>
+                <form asp-action="ActualizarTicket" method="post" class="task-content">
+                    <input type="hidden" name="ticketId" value="@Model.ticketId" />
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Cliente</label>
+                            <input type="text" class="form-control" value="@Model.usuarioCreador?.nombre" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fecha de Inicio</label>
+                            <input type="text" class="form-control" value="@Model.fechaApertura.ToString("dd/MM/yyyy")" readonly />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Categoría</label>
+                            <select id="categoriaSelect" name="categoriaId" class="form-select" required>
+                                <option value="">Elegir una opción</option>
+                                @foreach (var cat in categorias)
+                                {
+                                    <option value="@cat.categoriaId" selected="@(Model.problema?.categoria?.categoriaId == cat.categoriaId ? "selected" : null)">
+                                        @cat.nombre
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Aplicación o Servicio</label>
+                            <select id="problemaSelect" name="problemaId" class="form-select" required>
+                                <option value="">Primero seleccione una categoría</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Prioridad</label>
+                            <select name="prioridadId" class="form-select" required>
+                                @foreach (var prioridad in prioridades)
+                                {
+                                    <option value="@prioridad.prioridadId" selected="@(prioridad.prioridadId == Model.prioridadId ? "selected" : null)">
+                                        @prioridad.nombre
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Estado</label>
+                            <select name="estadoId" class="form-select" required>
+                                @foreach (var estado in estados)
+                                {
+                                    <option value="@estado.estadoId" selected="@(estado.estadoId == Model.estadoId ? "selected" : null)">
+                                        @estado.nombre
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Técnico Asignado</label>
+                        <select id="tecnicoSelect" name="tecnicoId" class="form-select" required>
+                            <option value="">Seleccione una categoría primero</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group mt-4">
+                        <label class="form-label">Archivos Adjuntos del Ticket</label>
+                        @if (Model.archivosAdjuntos != null && Model.archivosAdjuntos.Any())
+                        {
+                            <div class="list-group">
+                                @foreach (var archivo in Model.archivosAdjuntos)
+                                {
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>@archivo.nombreArchivo</strong><br />
+                                            <small class="text-muted">@archivo.fechaCarga.ToString("dd/MM/yyyy HH:mm")</small>
+                                        </div>
+                                        <a asp-controller="Cliente" asp-action="DescargarArchivo" asp-route-id="@archivo.archivoId" class="btn btn-sm btn-outline-primary">
+                                            Descargar
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No hay archivos adjuntos</p>
+                        }
+                    </div>
+
+
+
+                    <div class="form-actions">
+                        <a href="/Administrador/GestionTickets" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn-view">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+
+
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Tareas Existentes</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tarea</th>
+                                <th>Descripción</th>
+                                <th>Fecha</th>
+                                <th>Técnico Asignado</th>
+                                <th>Estado Actual</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tarea in Model.tarea)
+                            {
+                                <tr>
+                                    <td>@tarea.tareaId</td>
+                                    <td>@tarea.descripcion</td>
+                                    <td>@tarea.fecha.ToString("dd/MM/yyyy")</td>
+                                    <td>@tarea.usuarioAsignado?.nombre</td>
+                                    <td>@tarea.estado?.nombre</td>
+                                    <td>
+
+                                        @if (tarea.estadoId != 2 && tarea.estadoId != 6)
+                                        {
+                                            <a asp-action="EditarTarea" asp-route-tareaId="@tarea.tareaId" class="btn btn-sm btn-warning">Editar</a>
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="CancelarTarea(@tarea.tareaId)">Cancelar tarea</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-sm btn-secondary" disabled>Cancelar tarea</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Agregar nueva tarea</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="categoriaFiltro" class="form-label">Filtrar por categoría</label>
+                        <select id="categoriaFiltro" class="form-select" onchange="filtrarTabla()">
+                            <option value="">Todas</option>
+                            @foreach (var categoria in categorias)
+                            {
+                                <option value="@categoria.categoriaId">@categoria.nombre</option>
+                            }
+                        </select>
+                    </div>
+
+                    <table class="table table-bordered table-hover" id="tablaTecnicos">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#Empleado</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Total tickets activos</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tecnico in tecnicos)
+                            {
+                                <tr data-categoria="@tecnico.categoriaId">
+                                    <td>@tecnico.usuarioId</td>
+                                    <td>@tecnico.nombre</td>
+                                    <td>@tecnico.categoriaNombre</td>
+                                    <td>@tecnico.TicketsActivos</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="seleccionarTecnico(@tecnico.usuarioId, '@tecnico.nombre')">Seleccionar</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <form asp-action="CrearTarea" method="post">
+                        <input type="hidden" name="ticketId" value="@Model.ticketId" />
+                        <input type="hidden" id="tecnicoId" name="tecnicoId" />
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción de la Tarea</label>
+                            <textarea id="descripcion" name="descripcion" class="form-control" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success">Agregar</button>
+                        <a href="/Administrador/GestionTickets" class="btn btn-secondary">Volver</a>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+
+<script>
+    document.getElementById('categoriaSelect').addEventListener('change', function () {
+      const categoriaId = this.value;
+      const problemaSelect = document.getElementById('problemaSelect');
+      const tecnicoSelect = document.getElementById('tecnicoSelect');
+
+      if (categoriaId) {
+        fetch(`/Administrador/ObtenerProblemasPorCategoria?categoriaId=${categoriaId}`)
+          .then(res => res.json())
+          .then(data => {
+            problemaSelect.innerHTML = '<option value="">Elegir una opción</option>';
+            data.forEach(p => {
+              const opt = document.createElement('option');
+              opt.value = p.problemaId;
+              opt.textContent = p.nombre;
+              problemaSelect.appendChild(opt);
+            });
+          });
+
+        fetch(`/Administrador/ObtenerTecnicosPorCategoria?categoriaId=${categoriaId}`)
+          .then(res => res.json())
+          .then(data => {
+            tecnicoSelect.innerHTML = '<option value="">Elegir un técnico</option>';
+            data.forEach(t => {
+              const opt = document.createElement('option');
+              opt.value = t.usuarioId;
+              opt.textContent = `${t.nombre} (${t.ticketsActivos} tickets activos)`;
+              tecnicoSelect.appendChild(opt);
+            });
+          });
+      } else {
+        problemaSelect.innerHTML = '<option value="">Primero seleccione una categoría</option>';
+        tecnicoSelect.innerHTML = '<option value="">Seleccione una categoría primero</option>';
+      }
+    });
+</script>
+}
+
+@section Scripts {
+    <script>
+        document.getElementById('categoriaSelect').addEventListener('change', function () {
+          const categoriaId = this.value;
+          const problemaSelect = document.getElementById('problemaSelect');
+          const tecnicoSelect = document.getElementById('tecnicoSelect');
+
+          if (categoriaId) {
+            fetch(`/Administrador/ObtenerProblemasPorCategoria?categoriaId=${categoriaId}`)
+              .then(res => res.json())
+              .then(data => {
+                problemaSelect.innerHTML = '<option value="">Elegir una opción</option>';
+                data.forEach(p => {
+                  const opt = document.createElement('option');
+                  opt.value = p.problemaId;
+                  opt.textContent = p.nombre;
+                  problemaSelect.appendChild(opt);
+                });
+                problemaSelect.value = problemaId;
+              });
+
+            fetch(`/Administrador/ObtenerTecnicosPorCategoria?categoriaId=${categoriaId}`)
+              .then(res => res.json())
+              .then(data => {
+                tecnicoSelect.innerHTML = '<option value="">Elegir un técnico</option>';
+                data.forEach(t => {
+                  const opt = document.createElement('option');
+                  opt.value = t.usuarioId;
+                  opt.textContent = `${t.nombre} (${t.ticketsActivos} tickets activos)`;
+                  tecnicoSelect.appendChild(opt);
+                });
+                tecnicoSelect.value = tecnicoId;
+              });
+          } else {
+            problemaSelect.innerHTML = '<option value="">Primero seleccione una categoría</option>';
+            tecnicoSelect.innerHTML = '<option value="">Seleccione una categoría primero</option>';
+          }
+        });
+
+        // Set initial values for problema and tecnico
+        const problemaId = "@Model.problemaId";
+        const tecnicoId = "@Model.tarea.FirstOrDefault()?.usuarioAsignadoId";
+        document.getElementById('categoriaSelect').dispatchEvent(new Event('change'));
+    </script>
+
+    <script>
+        function CancelarTarea(tareaId) {
+            if (confirm("¿Estás seguro de que deseas cancelar esta tarea?")) {
+                fetch('/Administrador/CancelarTarea', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `tareaId=${tareaId}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload(); // Recargar la página para reflejar el cambio
+                    } else {
+                        alert("No se pudo cancelar la tarea.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al cancelar la tarea:", error);
+                    alert("Ocurrió un error al cancelar la tarea.");
+                });
+            }
+        }
+    </script>
+
+    <script>
+        function filtrarTabla() {
+            var filtro = document.getElementById("categoriaFiltro").value;
+            var filas = document.querySelectorAll("#tablaTecnicos tbody tr");
+            filas.forEach(fila => {
+                var categoria = fila.getAttribute("data-categoria");
+                fila.style.display = (filtro === "" || filtro === categoria) ? "" : "none";
+            });
+        }
+
+        function seleccionarTecnico(id, nombre) {
+            document.getElementById("tecnicoId").value = id;
+            alert("Técnico seleccionado: " + nombre);
+        }
+    </script>
+
+
+
+}

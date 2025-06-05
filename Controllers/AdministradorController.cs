@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Proyecto_DAW_Grupo_10.Models;
 using Proyecto_DAW_Grupo_10.Servicios;
+using Proyecto_DAW_Grupo_10.ViewModels;
 
 namespace Proyecto_DAW_Grupo_10.Controllers
 {
@@ -452,7 +453,356 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             return RedirectToAction("ListadoRoles", new { busqueda = busqueda });
         }
 
-       
+
+
+        #region Emmer
+
+        // Gestión de Tickets
+        public IActionResult GestionTickets()
+        {
+            var ticketsAsignados = _ticketsDbContext.ticket
+                .Where(t => _ticketsDbContext.tarea.Any(tar => tar.ticketId == t.ticketId))
+                .Include(t => t.problema)
+                .ThenInclude(p => p.categoria)
+                .Include(t => t.estado)
+                .Include(t => t.prioridad)
+                .Include(t => t.tarea)
+                .ToList();
+
+            var ticketsSinAsignar = _ticketsDbContext.ticket
+                .Where(t => !_ticketsDbContext.tarea.Any(tar => tar.ticketId == t.ticketId))
+                .Include(t => t.problema)
+                .ThenInclude(p => p.categoria)
+                .Include(t => t.prioridad)
+                .ToList();
+
+            ViewBag.TicketsAsignados = ticketsAsignados;
+            ViewBag.TicketsSinAsignar = ticketsSinAsignar;
+
+            return View();
+        }
+
+        public IActionResult EditarTicket(int id)
+        {
+            var ticket = _ticketsDbContext.ticket
+                .Include(t => t.problema).ThenInclude(p => p.categoria)
+                .Include(t => t.estado)
+                .Include(t => t.prioridad)
+                .Include(t => t.usuarioCreador)
+                .Include(t => t.tarea).ThenInclude(t => t.usuarioAsignado)
+                .Include(t => t.tarea).ThenInclude(t => t.estado)
+                .Include(t => t.archivosAdjuntos)
+
+                .FirstOrDefault(t => t.ticketId == id);
+
+            ViewBag.Estados = _ticketsDbContext.estado.ToList();
+            ViewBag.Prioridades = _ticketsDbContext.prioridad.ToList();
+            ViewBag.Categorias = _ticketsDbContext.categoria.ToList();
+            ViewBag.Tecnicos = _ticketsDbContext.usuario
+                .Where(u => u.rol.nombre == "Tecnico" && u.activo)
+                .Select(u => new TecnicoViewModel
+                {
+                    usuarioId = u.usuarioId,
+                    nombre = u.nombre,
+                    TicketsActivos = _ticketsDbContext.tarea
+                        .Count(t => t.usuarioAsignadoId == u.usuarioId && t.estadoId != 6),
+                    categoriaId = u.rol.categoriaId,
+                    categoriaNombre = u.rol.categoria.nombre
+                })
+                .OrderBy(t => t.TicketsActivos)
+                .ToList();
+
+            return View("EditarTicket", ticket);
+        }
+
+        [HttpPost]
+        public IActionResult ActualizarTicket(ticket model, int tecnicoId)
+        {
+            var ticket = _ticketsDbContext.ticket
+                .Include(t => t.tarea)
+                .FirstOrDefault(t => t.ticketId == model.ticketId);
+
+            if (ticket != null)
+            {
+                var usuarioId = HttpContext.Session.GetInt32("usuarioId") ?? 0;
+                var estadoAnterior = ticket.estadoId;
+
+                ticket.estadoId = model.estadoId;
+                ticket.prioridadId = model.prioridadId;
+                ticket.fechaCierre = model.fechaCierre;
+                ticket.problemaId = model.problemaId;
+
+                var tarea = ticket.tarea.OrderByDescending(t => t.fecha).FirstOrDefault();
+                if (tarea != null)
+                {
+                    tarea.usuarioAsignadoId = tecnicoId;
+                }
+
+                _ticketsDbContext.SaveChanges();
+
+                // Registrar historial de cambio de estado del ticket
+                var historial = new historialEstados
+                {
+                    ticketId = ticket.ticketId,
+                    tareaId = null,
+                    usuarioId = usuarioId,
+                    estadoAnteriorId = estadoAnterior,
+                    estadoNuevoId = model.estadoId,
+                    fechaNuevo = DateTime.Now
+                };
+                _ticketsDbContext.historialEstados.Add(historial);
+                _ticketsDbContext.SaveChanges();
+            }
+
+            return RedirectToAction("GestionTickets");
+        }
+
+
+
+
+        public IActionResult EditarTarea(int tareaId)
+        {
+            var tarea = _ticketsDbContext.tarea
+                .Include(t => t.usuarioAsignado)
+                .Include(t => t.estado)
+                .Include(t => t.ticket)
+                .Include(t => t.ticket)
+                    .ThenInclude(ti => ti.problema)
+                        .ThenInclude(p => p.categoria)
+
+                .FirstOrDefault(t => t.tareaId == tareaId);
+
+            if (tarea == null)
+                return NotFound();
+
+            ViewBag.Estados = _ticketsDbContext.estado.ToList();
+            ViewBag.Categorias = _ticketsDbContext.categoria.ToList();
+            ViewBag.Tecnicos = _ticketsDbContext.usuario
+                .Where(u => u.rol.nombre == "Tecnico" && u.activo)
+                .Select(u => new TecnicoViewModel
+                {
+                    usuarioId = u.usuarioId,
+                    nombre = u.nombre,
+                    TicketsActivos = _ticketsDbContext.tarea
+                        .Count(t => t.usuarioAsignadoId == u.usuarioId && t.estadoId != 6),
+                    categoriaId = u.rol.categoriaId,
+                    categoriaNombre = u.rol.categoria.nombre
+                })
+                .OrderBy(t => t.TicketsActivos)
+                .ToList();
+
+            return View("EditarTarea", tarea);
+        }
+
+        [HttpPost]
+        public IActionResult EditarTarea(int tareaId, string descripcion, int estadoId, int tecnicoId)
+        {
+            var tarea = _ticketsDbContext.tarea
+                .Include(t => t.ticket)
+                .FirstOrDefault(t => t.tareaId == tareaId);
+
+            if (tarea == null)
+                return NotFound();
+
+            var usuarioId = HttpContext.Session.GetInt32("usuarioId") ?? 0;
+            var estadoAnterior = tarea.estadoId;
+
+            tarea.descripcion = descripcion;
+            tarea.estadoId = estadoId;
+            tarea.usuarioAsignadoId = tecnicoId;
+            _ticketsDbContext.SaveChanges();
+
+            // Registrar historial de cambio de estado de la tarea
+            var historial = new historialEstados
+            {
+                ticketId = tarea.ticketId,
+                tareaId = tarea.tareaId,
+                usuarioId = usuarioId,
+                estadoAnteriorId = estadoAnterior,
+                estadoNuevoId = estadoId,
+                fechaNuevo = DateTime.Now
+            };
+            _ticketsDbContext.historialEstados.Add(historial);
+            _ticketsDbContext.SaveChanges();
+
+            return RedirectToAction("EditarTicket", new { id = tarea.ticketId });
+        }
+
+
+
+        public IActionResult AsignarTicket(int id)
+        {
+            var ticket = _ticketsDbContext.ticket
+                .Include(t => t.problema).ThenInclude(p => p.categoria)
+                .Include(t => t.usuarioCreador)
+                .Include(t => t.prioridad)
+                .Include(t => t.estado)
+                .Include(t => t.archivosAdjuntos)
+                .FirstOrDefault(t => t.ticketId == id);
+
+            var categorias = _ticketsDbContext.categoria.ToList();
+
+            var tecnicos = _ticketsDbContext.usuario
+                .Where(u => u.rol.nombre == "Tecnico" && u.activo)
+                .Select(u => new TecnicoViewModel
+                {
+                    usuarioId = u.usuarioId,
+                    nombre = u.nombre,
+                    TicketsActivos = _ticketsDbContext.tarea
+                        .Count(t => t.usuarioAsignadoId == u.usuarioId && t.estadoId != 6),
+                    categoriaId = u.rol.categoriaId,
+                    categoriaNombre = u.rol.categoria.nombre
+                })
+                .OrderBy(t => t.TicketsActivos)
+                .ToList();
+
+            ViewBag.Categorias = categorias;
+            ViewBag.Tecnicos = tecnicos;
+
+            return View("AsignarTicket", ticket);
+        }
+
+
+
+
+        [HttpPost]
+        public IActionResult CrearTarea(int ticketId, int tecnicoId, string descripcion)
+        {
+
+            var nuevaTarea = new tarea
+            {
+                ticketId = ticketId,
+                usuarioAsignadoId = tecnicoId,
+                estadoId = 3, // Asignado
+                descripcion = descripcion,
+                fecha = DateTime.Now
+            };
+
+            _ticketsDbContext.tarea.Add(nuevaTarea);
+            _ticketsDbContext.SaveChanges();
+
+            var ticket = _ticketsDbContext.ticket.Find(ticketId);
+            if (ticket != null && ticket.estadoId == 1)
+            {
+                ticket.estadoId = 3;
+                _ticketsDbContext.SaveChanges();
+            }
+
+            return RedirectToAction("GestionTickets");
+        }
+
+
+        [HttpGet]
+        public JsonResult ObtenerTecnicosPorCategoria(int categoriaId)
+        {
+            var tecnicos = _ticketsDbContext.usuario
+                .Where(u => u.rol.categoriaId == categoriaId && u.rol.nombre == "Tecnico" && u.activo)
+                .Select(u => new
+                {
+                    u.usuarioId,
+                    u.nombre,
+                    TicketsActivos = _ticketsDbContext.tarea
+                        .Count(t => t.usuarioAsignadoId == u.usuarioId && t.estadoId != 6)
+                })
+                .OrderBy(t => t.TicketsActivos)
+                .ToList();
+
+            return Json(tecnicos);
+        }
+
+        [HttpGet]
+        public JsonResult ObtenerProblemasPorCategoria(int categoriaId)
+        {
+            var problemas = _ticketsDbContext.problema
+                .Where(p => p.categoriaId == categoriaId)
+                .Select(p => new
+                {
+                    p.problemaId,
+                    p.nombre
+                })
+                .ToList();
+
+            return Json(problemas);
+        }
+
+
+        [HttpPost]
+        public IActionResult CancelarTarea(int tareaId)
+        {
+            var tarea = _ticketsDbContext.tarea.FirstOrDefault(t => t.tareaId == tareaId);
+
+            if (tarea != null && tarea.estadoId != 2 && tarea.estadoId != 6) // No Cancelado ni Finalizado
+            {
+                tarea.estadoId = 2; // Estado Cancelado
+                _ticketsDbContext.SaveChanges();
+                return Ok();
+            }
+
+            return BadRequest("La tarea no puede ser cancelada.");
+        }
+
+        [HttpPost]
+        public IActionResult CambiarEstadoTarea(int tareaId, int nuevoEstadoId)
+        {
+            var tarea = _ticketsDbContext.tarea
+                .Include(t => t.ticket)
+                .FirstOrDefault(t => t.tareaId == tareaId);
+
+            if (tarea == null)
+                return NotFound();
+
+            var usuarioId = HttpContext.Session.GetInt32("usuarioId") ?? 0;
+
+            // Guardar estado anterior de la tarea
+            var estadoAnteriorTarea = tarea.estadoId;
+
+            // Actualizar estado de la tarea
+            tarea.estadoId = nuevoEstadoId;
+            _ticketsDbContext.SaveChanges();
+
+            // Registrar cambio de estado de la tarea
+            var historialTarea = new historialEstados
+            {
+                ticketId = tarea.ticketId,
+                tareaId = tarea.tareaId,
+                usuarioId = usuarioId,
+                estadoAnteriorId = estadoAnteriorTarea,
+                estadoNuevoId = nuevoEstadoId,
+                fechaNuevo = DateTime.Now
+            };
+            _ticketsDbContext.historialEstados.Add(historialTarea);
+            _ticketsDbContext.SaveChanges();
+
+            // Si el ticket está en estado "Asignado", lo pasamos a "En proceso"
+            var estadoAsignado = _ticketsDbContext.estado.FirstOrDefault(e => e.nombre == "Asignado");
+            var estadoEnProceso = _ticketsDbContext.estado.FirstOrDefault(e => e.nombre == "En proceso");
+
+            if (tarea.ticket.estadoId == estadoAsignado?.estadoId)
+            {
+                var estadoAnteriorTicket = tarea.ticket.estadoId;
+                tarea.ticket.estadoId = estadoEnProceso.estadoId;
+                _ticketsDbContext.SaveChanges();
+
+                // Registrar cambio de estado del ticket
+                var historialTicket = new historialEstados
+                {
+                    ticketId = tarea.ticketId,
+                    tareaId = null, // 👈 null para cambios de ticket
+                    usuarioId = usuarioId,
+                    estadoAnteriorId = estadoAnteriorTicket,
+                    estadoNuevoId = estadoEnProceso.estadoId,
+                    fechaNuevo = DateTime.Now
+                };
+                _ticketsDbContext.historialEstados.Add(historialTicket);
+                _ticketsDbContext.SaveChanges();
+            }
+
+            return RedirectToAction("EditarTicket", new { id = tarea.ticketId });
+        }
+
+
+
+        #endregion
 
     }
 }
