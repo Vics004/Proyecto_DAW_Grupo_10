@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Proyecto_DAW_Grupo_10.Models;
 using Proyecto_DAW_Grupo_10.Servicios;
+using iTextSharp.text.pdf;
+using iTextSharp.text;
+using static Proyecto_DAW_Grupo_10.Servicios.AutenticationAttribute;
 
 namespace Proyecto_DAW_Grupo_10.Controllers
 {
@@ -495,52 +498,275 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         }
 
         //Nuevo modulo para ver Mis tareas asignadas 
-        public IActionResult MisTareas()
+        public IActionResult MisTareas(int? estadoFiltro, int? prioridadFiltro)
         {
             var usuarioId = HttpContext.Session.GetInt32("usuarioId");
-            var tareas = (from t in _ticketsDbContext.tarea
-                          join u in _ticketsDbContext.usuario on t.usuarioAsignadoId equals u.usuarioId
-                          join ti in _ticketsDbContext.ticket on t.ticketId equals ti.ticketId
-                          join p in _ticketsDbContext.prioridad on ti.prioridadId equals p.prioridadId
-                          join pro in _ticketsDbContext.problema on ti.problemaId equals pro.problemaId
-                          join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
-                          where u.usuarioId == usuarioId && e.nombre != creado && e.nombre != Finalizado && e.nombre != "Cancelado"
-                          select new
-                          {
-                              ID = t.tareaId,
-                              ticketID = ti.ticketId,
-                              Des = pro.nombre,
-                              Estado = e.nombre,
-                              Fecha = t.fecha,
-                              Prioridad = p.nombre,
-                          }).ToList();
+
+            var tareasQuery = from t in _ticketsDbContext.tarea
+                              join u in _ticketsDbContext.usuario on t.usuarioAsignadoId equals u.usuarioId
+                              join ti in _ticketsDbContext.ticket on t.ticketId equals ti.ticketId
+                              join p in _ticketsDbContext.prioridad on ti.prioridadId equals p.prioridadId
+                              join pro in _ticketsDbContext.problema on ti.problemaId equals pro.problemaId
+                              join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
+                              where u.usuarioId == usuarioId && e.nombre != "Finalizado" && e.nombre != "Cancelado"
+                              select new
+                              {
+                                  ID = t.tareaId,
+                                  ticketID = ti.ticketId,
+                                  Des = pro.nombre,
+                                  Estado = e.nombre,
+                                  EstadoId = e.estadoId,
+                                  Fecha = t.fecha,
+                                  Prioridad = p.nombre,
+                                  PrioridadId = p.prioridadId
+                              };
+
+            // Aplicar filtros
+            if (estadoFiltro.HasValue)
+            {
+                tareasQuery = tareasQuery.Where(t => t.EstadoId == estadoFiltro.Value);
+            }
+
+            if (prioridadFiltro.HasValue)
+            {
+                tareasQuery = tareasQuery.Where(t => t.PrioridadId == prioridadFiltro.Value);
+            }
+
+            var tareas = tareasQuery.OrderByDescending(t => t.Fecha).ToList();
+
+            // Datos para los dropdowns de filtros
+            var estados = _ticketsDbContext.estado
+                .Where(e => e.nombre != "Finalizado" && e.nombre != "Cancelado")
+                .ToList();
+
+            var prioridades = _ticketsDbContext.prioridad.ToList();
 
             ViewData["MisTareas"] = tareas;
+            ViewBag.Estados = new SelectList(estados, "estadoId", "nombre", estadoFiltro);
+            ViewBag.Prioridades = new SelectList(prioridades, "prioridadId", "nombre", prioridadFiltro);
+            ViewBag.EstadoSeleccionado = estadoFiltro;
+            ViewBag.PrioridadSeleccionada = prioridadFiltro;
+
             return View();
         }
         //Vista para ver Mis tareas finalizadas "HistorialTareas"
-        public IActionResult HistorialTareas()
+        public IActionResult HistorialTareas(DateTime? fechaInicio, DateTime? fechaFin, int? estadoFiltro, int? categoriaFiltro)
         {
             var usuarioId = HttpContext.Session.GetInt32("usuarioId");
-            var tareas = (from t in _ticketsDbContext.tarea
-                          join u in _ticketsDbContext.usuario on t.usuarioAsignadoId equals u.usuarioId
-                          join ti in _ticketsDbContext.ticket on t.ticketId equals ti.ticketId
-                          
-                          join pro in _ticketsDbContext.problema on ti.problemaId equals pro.problemaId
-                          join c in _ticketsDbContext.categoria on pro.categoriaId equals c.categoriaId
-                          join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
-                          where u.usuarioId == usuarioId && (e.nombre == Finalizado || e.nombre == "Cancelado")
-                          select new
-                          {
-                              ID = t.tareaId,
-                              ticketID = ti.ticketId,
-                              Des = pro.nombre,
-                              Estado = e.nombre,
-                              Fecha = t.fecha,
-                              Categoria = c.nombre,
-                          }).ToList();
+
+            var tareasQuery = from t in _ticketsDbContext.tarea
+                              join u in _ticketsDbContext.usuario on t.usuarioAsignadoId equals u.usuarioId
+                              join ti in _ticketsDbContext.ticket on t.ticketId equals ti.ticketId
+                              join pro in _ticketsDbContext.problema on ti.problemaId equals pro.problemaId
+                              join c in _ticketsDbContext.categoria on pro.categoriaId equals c.categoriaId
+                              join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
+                              where u.usuarioId == usuarioId && (e.nombre == Finalizado || e.nombre == "Cancelado")
+                              select new
+                              {
+                                  ID = t.tareaId,
+                                  ticketID = ti.ticketId,
+                                  Des = pro.nombre,
+                                  Estado = e.nombre,
+                                  EstadoId = e.estadoId,
+                                  Fecha = t.fecha,
+                                  Categoria = c.nombre,
+                                  CategoriaId = c.categoriaId
+                              };
+
+            // Aplicar filtros
+            if (fechaInicio.HasValue)
+            {
+                tareasQuery = tareasQuery.Where(t => t.Fecha >= fechaInicio.Value);
+            }
+
+            if (fechaFin.HasValue)
+            {
+                tareasQuery = tareasQuery.Where(t => t.Fecha <= fechaFin.Value.AddDays(1));
+            }
+
+            if (estadoFiltro.HasValue)
+            {
+                tareasQuery = tareasQuery.Where(t => t.EstadoId == estadoFiltro.Value);
+            }
+
+            if (categoriaFiltro.HasValue)
+            {
+                tareasQuery = tareasQuery.Where(t => t.CategoriaId == categoriaFiltro.Value);
+            }
+
+            var tareas = tareasQuery.ToList();
+
+            // Datos para los dropdowns de filtros
+            var estados = _ticketsDbContext.estado
+                .Where(e => e.nombre == Finalizado || e.nombre == "Cancelado")
+                .ToList();
+
+            var categorias = _ticketsDbContext.categoria.ToList();
+
             ViewData["MisTareas"] = tareas;
+            ViewBag.FechaInicio = fechaInicio;
+            ViewBag.FechaFin = fechaFin;
+            ViewBag.Estados = new SelectList(estados, "estadoId", "nombre", estadoFiltro);
+            ViewBag.Categorias = new SelectList(categorias, "categoriaId", "nombre", categoriaFiltro);
+            ViewBag.EstadoSeleccionado = estadoFiltro;
+            ViewBag.CategoriaSeleccionada = categoriaFiltro;
+
             return View();
+        }
+
+        [Autenticacion]
+        public IActionResult GenerarPDFHistorialTareas(DateTime? fechaInicio, DateTime? fechaFin, int? estadoFiltro, int? categoriaFiltro)
+        {
+            // Obtener ID del técnico de la sesión
+            var usuarioId = HttpContext.Session.GetInt32("usuarioId");
+
+            // Consulta base de tareas
+            var tareasQuery = from t in _ticketsDbContext.tarea
+                              join u in _ticketsDbContext.usuario on t.usuarioAsignadoId equals u.usuarioId
+                              join ti in _ticketsDbContext.ticket on t.ticketId equals ti.ticketId
+                              join pro in _ticketsDbContext.problema on ti.problemaId equals pro.problemaId
+                              join c in _ticketsDbContext.categoria on pro.categoriaId equals c.categoriaId
+                              join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
+                              where u.usuarioId == usuarioId && (e.nombre == Finalizado || e.nombre == "Cancelado")
+                              select new
+                              {
+                                  t.tareaId,
+                                  ti.ticketId,
+                                  Problema = pro.nombre,
+                                  Estado = e.nombre,
+                                  EstadoId = e.estadoId,
+                                  t.fecha,
+                                  Categoria = c.nombre,
+                                  CategoriaId = c.categoriaId,
+                                  t.descripcion
+                              };
+
+            // Aplicar filtros si están seleccionados
+            if (fechaInicio.HasValue)
+            {
+                tareasQuery = tareasQuery.Where(t => t.fecha >= fechaInicio.Value);
+            }
+
+            if (fechaFin.HasValue)
+            {
+                tareasQuery = tareasQuery.Where(t => t.fecha <= fechaFin.Value.AddDays(1)); // Incluye todo el día final
+            }
+
+            if (estadoFiltro.HasValue)
+            {
+                tareasQuery = tareasQuery.Where(t => t.EstadoId == estadoFiltro.Value);
+            }
+
+            if (categoriaFiltro.HasValue)
+            {
+                tareasQuery = tareasQuery.Where(t => t.CategoriaId == categoriaFiltro.Value);
+            }
+
+            // Ejecutar consulta y ordenar por fecha
+            var tareas = tareasQuery.OrderByDescending(t => t.fecha).ToList();
+
+            // Obtener información del técnico para el reporte
+            var tecnico = _ticketsDbContext.usuario.FirstOrDefault(u => u.usuarioId == usuarioId);
+            var tecnicoNombre = tecnico?.nombre ?? "Técnico";
+
+            // Crear el documento PDF
+            using var ms = new MemoryStream();
+            var doc = new Document(PageSize.A4);
+            PdfWriter.GetInstance(doc, ms);
+            doc.Open();
+
+            // Fuentes
+            var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
+            var subtitleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
+            var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 10);
+            var bodyFont = FontFactory.GetFont(FontFactory.HELVETICA, 9);
+            var smallFont = FontFactory.GetFont(FontFactory.HELVETICA, 8);
+
+            // Título y subtítulo
+            doc.Add(new Paragraph("Ayudín - Historial de Tareas", titleFont));
+            doc.Add(new Paragraph($"Técnico: {tecnicoNombre}", subtitleFont));
+            doc.Add(new Paragraph(DateTime.Now.ToString("dd/MM/yyyy HH:mm"), smallFont));
+            doc.Add(new Paragraph(" "));
+
+            // Información de filtros aplicados
+            var filtros = new Paragraph("Filtros aplicados: ", subtitleFont);
+
+            if (fechaInicio.HasValue)
+            {
+                filtros.Add(new Chunk($" Desde: {fechaInicio.Value.ToString("dd/MM/yyyy")}", bodyFont));
+            }
+
+            if (fechaFin.HasValue)
+            {
+                filtros.Add(new Chunk($" Hasta: {fechaFin.Value.ToString("dd/MM/yyyy")}", bodyFont));
+            }
+
+            if (estadoFiltro.HasValue)
+            {
+                var estadoNombre = _ticketsDbContext.estado.FirstOrDefault(e => e.estadoId == estadoFiltro.Value)?.nombre;
+                filtros.Add(new Chunk($" Estado: {estadoNombre}", bodyFont));
+            }
+
+            if (categoriaFiltro.HasValue)
+            {
+                var categoriaNombre = _ticketsDbContext.categoria.FirstOrDefault(c => c.categoriaId == categoriaFiltro.Value)?.nombre;
+                filtros.Add(new Chunk($" Categoría: {categoriaNombre}", bodyFont));
+            }
+
+            if (!fechaInicio.HasValue && !fechaFin.HasValue && !estadoFiltro.HasValue && !categoriaFiltro.HasValue)
+            {
+                filtros.Add(new Chunk(" Ninguno", bodyFont));
+            }
+
+            doc.Add(filtros);
+            doc.Add(new Paragraph(" "));
+
+            // Crear tabla para las tareas
+            PdfPTable table = new PdfPTable(6);
+            table.WidthPercentage = 100;
+            table.SetWidths(new float[] { 1f, 1f, 3f, 2f, 2f, 3f });
+
+            // Encabezados de la tabla
+            string[] headers = { "ID Tarea", "Ticket", "Problema", "Categoría", "Estado", "Fecha" };
+            foreach (var h in headers)
+            {
+                table.AddCell(new PdfPCell(new Phrase(h, headerFont)) { BackgroundColor = new BaseColor(240, 240, 240) });
+            }
+
+            // Agregar tareas a la tabla
+            foreach (var t in tareas)
+            {
+                table.AddCell(new Phrase(t.tareaId.ToString(), bodyFont));
+                table.AddCell(new Phrase($"#{t.ticketId}", bodyFont));
+                table.AddCell(new Phrase(t.Problema, bodyFont));
+                table.AddCell(new Phrase(t.Categoria, bodyFont));
+                table.AddCell(new Phrase(t.Estado, bodyFont));
+                table.AddCell(new Phrase(t.fecha.ToString("dd/MM/yyyy HH:mm"), bodyFont));
+            }
+
+            doc.Add(table);
+
+            // Agregar resumen al final
+            doc.Add(new Paragraph(" "));
+            doc.Add(new Paragraph($"Total de tareas: {tareas.Count}", subtitleFont));
+
+            // Si no hay tareas, mostrar mensaje
+            if (tareas.Count == 0)
+            {
+                doc.Add(new Paragraph("No se encontraron tareas con los filtros seleccionados.", bodyFont));
+            }
+
+            doc.Close();
+
+            // Nombre del archivo con filtros aplicados
+            string fileName = $"HistorialTareas_{tecnicoNombre}_{DateTime.Now:yyyyMMddHHmm}";
+            if (fechaInicio.HasValue) fileName += $"_Desde{fechaInicio.Value:yyyyMMdd}";
+            if (fechaFin.HasValue) fileName += $"_Hasta{fechaFin.Value:yyyyMMdd}";
+            if (estadoFiltro.HasValue) fileName += $"_Estado{estadoFiltro.Value}";
+            if (categoriaFiltro.HasValue) fileName += $"_Categoria{categoriaFiltro.Value}";
+            fileName += ".pdf";
+
+            return File(ms.ToArray(), "application/pdf", fileName);
         }
 
     }
