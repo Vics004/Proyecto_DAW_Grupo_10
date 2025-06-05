@@ -36,6 +36,47 @@
                 }
             </div>
 
+            <!-- Tickets Sin Asignar -->
+            <div class="table-container">
+                <div class="tasks-section">
+                    <h3 class="section-title mb-3">Tickets Sin Asignar</h3>
+                    <table class="table modern-table">
+                        <thead>
+                            <tr>
+                                <th>ID Ticket</th>
+                                <th>Problema</th>
+                                <th>Categoría</th>
+                                <th>Fecha de Creación</th>
+                                <th>Prioridad</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in ticketsSinAsignar)
+                            {
+                                <tr>
+                                    <td class="id-column">@ticket.ticketId</td>
+                                    <td>@ticket.problema?.nombre</td>
+                                    <td>@ticket.problema?.categoria?.nombre</td>
+                                    <td>@ticket.fechaApertura.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <span class="priority-badge priority-@ticket.prioridad?.nombre.ToLower()">
+                                            @ticket.prioridad?.nombre
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <a href="/Administrador/AsignarTicket/@ticket.ticketId" class="btn-view d-flex align-items-center justify-content-center" style="width: 100px;">
+                                            Asignar
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Tickets Asignados -->
             <div class="table-container mb-5">
                 <div class="tasks-section">
@@ -75,47 +116,6 @@
                                     <td>
                                         <a href="/Administrador/EditarTicket/@ticket.ticketId" class="btn-view d-flex align-items-center justify-content-center" style="width: 100px;">
                                             Editar
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tickets Sin Asignar -->
-            <div class="table-container">
-                <div class="tasks-section">
-                    <h3 class="section-title mb-3">Tickets Sin Asignar</h3>
-                    <table class="table modern-table">
-                        <thead>
-                            <tr>
-                                <th>ID Ticket</th>
-                                <th>Problema</th>
-                                <th>Categoría</th>
-                                <th>Fecha de Creación</th>
-                                <th>Prioridad</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var ticket in ticketsSinAsignar)
-                            {
-                                <tr>
-                                    <td class="id-column">@ticket.ticketId</td>
-                                    <td>@ticket.problema?.nombre</td>
-                                    <td>@ticket.problema?.categoria?.nombre</td>
-                                    <td>@ticket.fechaApertura.ToString("dd/MM/yyyy")</td>
-                                    <td>
-                                        <span class="priority-badge priority-@ticket.prioridad?.nombre.ToLower()">
-                                            @ticket.prioridad?.nombre
-                                        </span>
-                                    </td>
-
-                                    <td>
-                                        <a href="/Administrador/AsignarTicket/@ticket.ticketId" class="btn-view d-flex align-items-center justify-content-center" style="width: 100px;">
-                                            Asignar
                                         </a>
                                     </td>
                                 </tr>
