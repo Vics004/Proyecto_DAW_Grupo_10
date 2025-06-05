@@ -90,6 +90,8 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                      Estado = e.nombre,
                                      Prioridad = p.nombre,
                                      Categoria = c.nombre,
+                                     Problema = ta.descripcion,
+                                     ProblemaTi = ti.descripcion,
                                  }).FirstOrDefault();
             //Controlador para cambiar de vista a la no editable y reutilizar vista
             if (tareasDetalle.Estado == "Cancelado" || tareasDetalle.Estado == "Finalizado")
@@ -225,7 +227,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                 join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
                                 where t.ticketId == tarea.ticketId
                                 select e.nombre).FirstOrDefault();
-            var ticket = _ticketsDbContext.tarea.Find(tarea.ticketId);
+            var ticket = _ticketsDbContext.ticket.Find(tarea.ticketId);
 
             if (estadoTicket == asignado)
             {
@@ -241,6 +243,9 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                 /*
                     Zona para logica de Email para mandar en proceso del Ticket (probablemente)
                  */
+
+
+                    EnviarCorreoEstado(ticket.ticketId, "En proceso");
 
 
                 // Registrar el cambio de estado en el historial
@@ -277,10 +282,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             //Se colocó en este punto porque si se colocaba arriba (en la zona marcada) se mandaba 3 veces
             // En proceso, en espera y en finalizado, ya acá solo se manda en proceso
 
-            if (estadoNombre == "En proceso")
-            {
-                EnviarCorreoEstado(ticket.ticketId, "En proceso");
-            }
+            //Pero quiza se mandaba 3 veces por que se usaba una variable que no era, no se, es de ver
 
             /*Se agregó para el envío de correo a todos los Administradores, cuando una tarea se marque como finalizada*/
             // Se puso una plantilla en específico para los Administradores en vez de usar el método que contiene la plantilla para clientes
@@ -314,22 +316,23 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                 /*Fin plantilla*/
 
 
-                // Registrar el cambio de estado en el historial
-                var historialEstado = new historialEstados
-                {
-                    ticketId = tarea.ticketId,
-                    usuarioId = (int)HttpContext.Session.GetInt32("usuarioId"),
-                    estadoAnteriorId = tarea.estadoId,
-                    estadoNuevoId = estadoId,
-                    fechaNuevo = DateTime.Now,
-                    tareaId = id
-
-                };
-                _ticketsDbContext.historialEstados.Add(historialEstado);
-                _ticketsDbContext.SaveChanges();
+                
 
                 return RedirectToAction("Dashboard");
             }
+            // Registrar el cambio de estado en el historial
+            var historialEstado = new historialEstados
+            {
+                ticketId = tarea.ticketId,
+                usuarioId = (int)HttpContext.Session.GetInt32("usuarioId"),
+                estadoAnteriorId = tarea.estadoId,
+                estadoNuevoId = estadoId,
+                fechaNuevo = DateTime.Now,
+                tareaId = id
+
+            };
+            _ticketsDbContext.historialEstados.Add(historialEstado);
+            _ticketsDbContext.SaveChanges();
             return RedirectToAction("Dashboard");
         }
 
