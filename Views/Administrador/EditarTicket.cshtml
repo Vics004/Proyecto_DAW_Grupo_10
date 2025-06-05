@@ -105,7 +105,7 @@
                                 <label class="info-label">Estado</label>
                                 <div class="select-wrapper">
                                     <select name="estadoId" class="form-control profile-input" required>
-                                        @foreach (var estado in estados.Where(e => e.nombre != "Creado" && e.nombre != "Asignado"))
+                                        @foreach (var estado in estados.Where(e => e.nombre != "Creado" && e.nombre != "Asignado" || e.estadoId == Model.estadoId))
                                         {
                                             <option value="@estado.estadoId" selected="@(estado.estadoId == Model.estadoId ? "selected" : null)">
                                                 @estado.nombre
@@ -120,7 +120,7 @@
                                 <a href="/Administrador/GestionTickets" class="btn-secondary">Cancelar</a>
                                 <button type="submit" class="btn-view">Guardar Cambios</button>
                             </div>
-                    </div>
+                        </div>
                     </div>
 
                     <!-- Archivos Adjuntos -->
@@ -314,13 +314,20 @@
                     .then(res => res.json())
                     .then(data => {
                         problemaSelect.innerHTML = '<option value="">Elegir una opción</option>';
+                        let found = false;
                         data.forEach(p => {
                             const opt = document.createElement('option');
                             opt.value = p.problemaId;
                             opt.textContent = p.nombre;
+                            if (p.problemaId == problemaId) {
+                                        opt.selected = true;
+                                        found = true;
+                                    }
                             problemaSelect.appendChild(opt);
                         });
-                        problemaSelect.value = problemaId;
+                        if (!found) {
+                                problemaSelect.value = "";
+                            }
                     });
             } else {
                 problemaSelect.innerHTML = '<option value="">Primero seleccione una categoría</option>';
@@ -803,5 +810,4 @@
             font-size: 1rem;
         }
 
- 
 </style>
