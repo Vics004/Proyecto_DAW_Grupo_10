@@ -515,6 +515,9 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             return View("EditarTicket", ticket);
         }
 
+
+        //Si el estado del ticket cambia a finalizado, el cliente recibiría un correo 
+
         [HttpPost]
         public IActionResult ActualizarTicket(ticket model, int tecnicoId)
         {
@@ -552,7 +555,45 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                 };
                 _ticketsDbContext.historialEstados.Add(historial);
                 _ticketsDbContext.SaveChanges();
-            }
+
+
+                /*Inicio correo*/
+                //Acá se agregó lo de correo
+                var estadoActual = _ticketsDbContext.estado
+                .Where(e => e.estadoId == model.estadoId)
+                .Select(e => e.nombre)
+                .FirstOrDefault();
+
+                if (estadoActual != null && estadoActual.Equals("Finalizado", StringComparison.OrdinalIgnoreCase))
+                {
+                    var cliente = _ticketsDbContext.usuario.Find(ticket.usuarioCreadorId);
+                    var problema = _ticketsDbContext.problema
+                        .Where(p => p.problemaId == ticket.problemaId)
+                        .Select(p => p.nombre)
+                        .FirstOrDefault();
+
+                    if (cliente != null && problema != null)
+                    {
+                        string asunto = $"Tu ticket #{ticket.ticketId} ha sido resuelto";
+                        string cuerpo = $"Hola {cliente.nombre},\n\n" +
+                            $"Tu ticket #{ticket.ticketId} sobre {problema} ha sido resuelto.\n\n" +
+                            $"Nuestro equipo ha trabajado arduamente para analizar el caso, identificar la causa raíz y brindarte una solución efectiva lo antes posible.\n\n" +
+                            $"Por favor, verifica si el problema ha sido solucionado y comunícate con nosotros en las siguientes 24 horas si persiste algún inconveniente.\n\n" +
+                            $"¡Gracias por confiar en nosotros!\n" +
+                            $"Ayudín";
+
+                        correo enviarCorreo = new correo(_configuration);
+                        enviarCorreo.enviar(
+                            destinatario: cliente.correo,
+                            asunto: asunto,
+                            cuerpo: cuerpo
+                        );
+                    }
+                }
+                /**Fin correo*/
+
+
+                }
 
             return RedirectToAction("GestionTickets");
         }
@@ -664,7 +705,8 @@ namespace Proyecto_DAW_Grupo_10.Controllers
 
 
 
-
+        //Se agregó el correo para que los técnicos sean notificados
+        //Cuando el Administrador les asigne una tarea
         [HttpPost]
         public IActionResult CrearTarea(int ticketId, int tecnicoId, string descripcion)
         {
@@ -728,6 +770,38 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             }
 
             _ticketsDbContext.SaveChanges();
+
+            //Inicio correo
+            var ticketcorreo = _ticketsDbContext.ticket.Find(ticketId);
+            var tecnico = _ticketsDbContext.usuario.Find(tecnicoId);
+            var problema = _ticketsDbContext.problema
+                .Where(p => p.problemaId == ticketcorreo.problemaId)
+                .Select(p => p.nombre)
+                .FirstOrDefault();
+
+            var prioridad = _ticketsDbContext.prioridad
+                .Where(p => p.prioridadId == ticketcorreo.prioridadId)
+                .Select(p => p.nombre)
+                .FirstOrDefault();
+
+            var cliente = _ticketsDbContext.usuario.Find(ticketcorreo.usuarioCreadorId);
+            string asunto = $"Se te ha asignado el ticket #{ticketcorreo.ticketId}";
+            string cuerpo = $"Hola {tecnico.nombre},\n\n" +
+                $"El ticket #{ticketcorreo.ticketId} sobre {problema}, reportado por {cliente.nombre}, ha sido asignado a ti." +
+                $"Tiene prioridad {prioridad}. Por favor, revisa el caso y mantén informado al cliente.\n\n" +
+                $"Saludos,\nAyudín";
+
+           
+            correo enviarCorreo = new correo(_configuration);
+            enviarCorreo.enviar(
+                destinatario: tecnico.correo,
+                asunto: asunto,
+                cuerpo: cuerpo
+            );
+
+            /*fin de correo*/
+
+
 
             return RedirectToAction("EditarTicket", new { id = ticketId });
         }
