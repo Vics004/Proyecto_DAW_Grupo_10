@@ -5,6 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Proyecto_DAW_Grupo_10.Models;
 using Proyecto_DAW_Grupo_10.Servicios;
 using Proyecto_DAW_Grupo_10.ViewModels;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using System.IO;
 
 namespace Proyecto_DAW_Grupo_10.Controllers
 {
@@ -796,6 +799,328 @@ namespace Proyecto_DAW_Grupo_10.Controllers
 
             return RedirectToAction("EditarTicket", new { id = tarea.ticketId });
         }
+
+
+        //Reportes 
+        public IActionResult Reportes()
+        {
+            // Primero obtenemos el estado "Finalizado" (asumimos que existe en la base de datos)
+            var estadoFinalizado = _ticketsDbContext.estado
+                .FirstOrDefault(e => e.nombre == "Finalizado");
+
+            if (estadoFinalizado == null)
+            {
+                // Manejar el caso donde no existe el estado "Finalizado"
+                return View(new { Tecnicos = new List<dynamic>(), Clientes = new List<dynamic>(), Categorias = new List<dynamic>() });
+            }
+
+            // Obtener los 3 técnicos con más tickets asignados
+            var topTecnicos = _ticketsDbContext.usuario
+                .Where(u => u.tipoUsuario) // Asumiendo que true es técnico
+                .Select(u => new
+                {
+                    Tecnico = u,
+                    TicketsAsignados = _ticketsDbContext.tarea
+                        .Where(t => t.usuarioAsignadoId == u.usuarioId)
+                        .Select(t => t.ticketId)
+                        .Distinct()
+                        .Count(),
+                    TicketsFinalizados = _ticketsDbContext.tarea
+                        .Where(t => t.usuarioAsignadoId == u.usuarioId &&
+                                   t.ticket.estadoId == estadoFinalizado.estadoId)
+                        .Select(t => t.ticketId)
+                        .Distinct()
+                        .Count()
+                })
+                .OrderByDescending(x => x.TicketsAsignados)
+                .Take(3)
+                .ToList();
+
+
+
+            // Preparar datos para la vista
+            var reporteTecnicos = topTecnicos.Select(t => new
+            {
+                t.Tecnico.usuarioId,
+                t.Tecnico.nombre,
+                Categoria = _ticketsDbContext.categoria
+                    .FirstOrDefault(c => c.categoriaId == t.Tecnico.rolId)?.nombre ?? "Sin categoría",
+                t.TicketsAsignados,
+                t.TicketsFinalizados,
+                Estado = t.Tecnico.activo ? "Activo" : "Inactivo",
+                PorcentajeFinalizado = t.TicketsAsignados > 0 ?
+                    Math.Round((double)t.TicketsFinalizados / t.TicketsAsignados * 100, 2) : 0
+            }).ToList();
+
+            // Obtener estadísticas de clientes
+            var estadisticasClientes = _ticketsDbContext.usuario                
+                .Select(u => new
+                {
+                    ID = u.usuarioId,
+                    Nombre_Usuario = u.nombre,
+                    Estado_Cliente = u.activo ? "Activo" : "Inactivo",
+                    Tickets_Realizados = _ticketsDbContext.ticket
+                        .Count(t => t.usuarioCreadorId == u.usuarioId),
+                    Tickets_Completados = _ticketsDbContext.ticket
+                        .Count(t => t.usuarioCreadorId == u.usuarioId &&
+                                   t.estado.nombre == "Finalizado"),
+                    Tickets_Cancelados = _ticketsDbContext.ticket
+                        .Count(t => t.usuarioCreadorId == u.usuarioId &&
+                                   t.estado.nombre == "Cancelado")
+                })
+                .OrderByDescending(c => c.Tickets_Realizados)
+                .Take(3)
+                .ToList();
+
+            // Nueva consulta para categorías corregida
+            var estadisticasCategorias = _ticketsDbContext.categoria
+                .Select(c => new
+                {
+                    Categoria = c.nombre,
+                    Total_Tickets = _ticketsDbContext.ticket
+                        .Count(t => t.problema.categoriaId == c.categoriaId),
+                    Tickets_Completados = _ticketsDbContext.ticket
+                        .Count(t => t.problema.categoriaId == c.categoriaId &&
+                                   t.estado.nombre == "Finalizado"),
+                    Tickets_Cancelados = _ticketsDbContext.ticket
+                        .Count(t => t.problema.categoriaId == c.categoriaId &&
+                                   t.estado.nombre == "Cancelado")
+                })
+                .OrderByDescending(c => c.Total_Tickets)
+                .Take(3)
+                .ToList();
+
+            return View(new
+            {
+                Tecnicos = reporteTecnicos,
+                Clientes = estadisticasClientes,
+                Categorias = estadisticasCategorias
+            });
+
+
+        }
+
+
+        //Tecnicos
+        public IActionResult GenerarPDFReporteTecnicos()
+        {
+            var estadoFinalizado = _ticketsDbContext.estado
+                .FirstOrDefault(e => e.nombre == "Finalizado");
+
+            var topTecnicos = _ticketsDbContext.usuario
+                .Where(u => u.tipoUsuario)
+                .Select(u => new
+                {
+                    Tecnico = u,
+                    TicketsAsignados = _ticketsDbContext.tarea
+                        .Where(t => t.usuarioAsignadoId == u.usuarioId)
+                        .Select(t => t.ticketId)
+                        .Distinct()
+                        .Count(),
+                    TicketsFinalizados = _ticketsDbContext.tarea
+                        .Where(t => t.usuarioAsignadoId == u.usuarioId &&
+                                   t.ticket.estadoId == estadoFinalizado.estadoId)
+                        .Select(t => t.ticketId)
+                        .Distinct()
+                        .Count()
+                })
+                .OrderByDescending(x => x.TicketsAsignados)
+                .Take(3)
+                .ToList();
+
+            var reporteTecnicos = topTecnicos.Select(t => new
+            {
+                t.Tecnico.usuarioId,
+                t.Tecnico.nombre,
+                Categoria = _ticketsDbContext.categoria
+                    .FirstOrDefault(c => c.categoriaId == t.Tecnico.rolId)?.nombre ?? "Sin categoría",
+                t.TicketsAsignados,
+                t.TicketsFinalizados,
+                Estado = t.Tecnico.activo ? "Activo" : "Inactivo",
+                PorcentajeFinalizado = t.TicketsAsignados > 0 ?
+                    Math.Round((double)t.TicketsFinalizados / t.TicketsAsignados * 100, 2) : 0
+            }).ToList();
+
+            using var ms = new MemoryStream();
+            var doc = new Document(PageSize.A4);
+            PdfWriter.GetInstance(doc, ms);
+            doc.Open();
+
+            var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
+            var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
+            var bodyFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
+
+            doc.Add(new Paragraph("Ayudín", titleFont));
+            doc.Add(new Paragraph("Reporte de Técnicos", titleFont));
+            doc.Add(new Paragraph(" ")); // Espacio
+
+            PdfPTable table = new PdfPTable(7);
+            table.WidthPercentage = 100;
+            table.SetWidths(new float[] { 1.5f, 2f, 2f, 2f, 2f, 2f, 2f });
+
+            string[] headers = { "ID", "Nombre", "Categoría", "Asignados", "Finalizados", "% Finalizados", "Estado" };
+            foreach (var h in headers)
+            {
+                table.AddCell(new PdfPCell(new Phrase(h, headerFont)));
+            }
+
+            foreach (var t in reporteTecnicos)
+            {
+                table.AddCell(new Phrase(t.usuarioId.ToString(), bodyFont));
+                table.AddCell(new Phrase(t.nombre, bodyFont));
+                table.AddCell(new Phrase(t.Categoria, bodyFont));
+                table.AddCell(new Phrase(t.TicketsAsignados.ToString(), bodyFont));
+                table.AddCell(new Phrase(t.TicketsFinalizados.ToString(), bodyFont));
+                table.AddCell(new Phrase(t.PorcentajeFinalizado + " %", bodyFont));
+                table.AddCell(new Phrase(t.Estado, bodyFont));
+            }
+
+            doc.Add(table);
+            doc.Close();
+
+            return File(ms.ToArray(), "application/pdf", "Reporte_Tecnicos.pdf");
+        }
+
+
+        //Cliente
+        public IActionResult GenerarPDFReporteClientes()
+        {
+            var topClientes = _ticketsDbContext.usuario
+                .Select(u => new
+                {
+                    Cliente = u,
+                    TicketsRealizados = _ticketsDbContext.ticket
+                        .Where(t => t.usuarioCreadorId == u.usuarioId)
+                        .Count(),
+                    TicketsFinalizados = _ticketsDbContext.ticket
+                        .Where(t => t.usuarioCreadorId == u.usuarioId &&
+                                    t.estado.nombre == "Finalizado")
+                        .Count(),
+                    TicketsCancelados = _ticketsDbContext.ticket
+                        .Where(t => t.usuarioCreadorId == u.usuarioId &&
+                                    t.estado.nombre == "Cancelado")
+                        .Count()
+                })
+                .OrderByDescending(c => c.TicketsRealizados)
+                .Take(3)
+                .ToList();
+
+            var reporteClientes = topClientes.Select(c => new
+            {
+                c.Cliente.usuarioId,
+                c.Cliente.nombre,
+                c.TicketsRealizados,
+                c.TicketsFinalizados,
+                c.TicketsCancelados,
+                Estado = c.Cliente.activo ? "Activo" : "Inactivo"
+            }).ToList();
+
+            using var ms = new MemoryStream();
+            var doc = new Document(PageSize.A4);
+            PdfWriter.GetInstance(doc, ms);
+            doc.Open();
+
+            var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
+            var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
+            var bodyFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
+
+            doc.Add(new Paragraph("Ayudín", titleFont));
+            doc.Add(new Paragraph("Reporte de Clientes", titleFont));
+            doc.Add(new Paragraph(" ")); // Espacio
+
+            PdfPTable table = new PdfPTable(6);
+            table.WidthPercentage = 100;
+            table.SetWidths(new float[] { 1.5f, 2f, 2f, 2f, 2f, 2f });
+
+            string[] headers = { "ID", "Nombre", "Realizados", "Finalizados", "Cancelados", "Estado" };
+            foreach (var h in headers)
+            {
+                table.AddCell(new PdfPCell(new Phrase(h, headerFont)));
+            }
+
+            foreach (var c in reporteClientes)
+            {
+                table.AddCell(new Phrase(c.usuarioId.ToString(), bodyFont));
+                table.AddCell(new Phrase(c.nombre, bodyFont));
+                table.AddCell(new Phrase(c.TicketsRealizados.ToString(), bodyFont));
+                table.AddCell(new Phrase(c.TicketsFinalizados.ToString(), bodyFont));
+                table.AddCell(new Phrase(c.TicketsCancelados.ToString(), bodyFont));
+                table.AddCell(new Phrase(c.Estado, bodyFont));
+            }
+
+            doc.Add(table);
+            doc.Close();
+
+            return File(ms.ToArray(), "application/pdf", "Reporte_Clientes.pdf");
+        }
+
+        //Categorias
+        public IActionResult GenerarPDFReporteCategorias()
+        {
+            var topCategorias = _ticketsDbContext.categoria
+                .Select(c => new
+                {
+                    Categoria = c,
+                    TotalTickets = _ticketsDbContext.ticket
+                        .Count(t => t.problema.categoriaId == c.categoriaId),
+                    TicketsFinalizados = _ticketsDbContext.ticket
+                        .Count(t => t.problema.categoriaId == c.categoriaId &&
+                                    t.estado.nombre == "Finalizado"),
+                    TicketsCancelados = _ticketsDbContext.ticket
+                        .Count(t => t.problema.categoriaId == c.categoriaId &&
+                                    t.estado.nombre == "Cancelado")
+                })
+                .OrderByDescending(c => c.TotalTickets)
+                .Take(3)
+                .ToList();
+
+            var reporteCategorias = topCategorias.Select(cat => new
+            {
+                cat.Categoria.categoriaId,
+                cat.Categoria.nombre,
+                cat.TotalTickets,
+                cat.TicketsFinalizados,
+                cat.TicketsCancelados
+            }).ToList();
+
+            using var ms = new MemoryStream();
+            var doc = new Document(PageSize.A4);
+            PdfWriter.GetInstance(doc, ms);
+            doc.Open();
+
+            var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
+            var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12);
+            var bodyFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
+
+            doc.Add(new Paragraph("Ayudín", titleFont));
+            doc.Add(new Paragraph("Reporte de Categorías", titleFont));
+            doc.Add(new Paragraph(" ")); // Espacio
+
+            PdfPTable table = new PdfPTable(5);
+            table.WidthPercentage = 100;
+            table.SetWidths(new float[] { 1.5f, 2.5f, 2f, 2f, 2f });
+
+            string[] headers = { "ID", "Nombre", "Total", "Finalizados", "Cancelados" };
+            foreach (var h in headers)
+            {
+                table.AddCell(new PdfPCell(new Phrase(h, headerFont)));
+            }
+
+            foreach (var c in reporteCategorias)
+            {
+                table.AddCell(new Phrase(c.categoriaId.ToString(), bodyFont));
+                table.AddCell(new Phrase(c.nombre, bodyFont));
+                table.AddCell(new Phrase(c.TotalTickets.ToString(), bodyFont));
+                table.AddCell(new Phrase(c.TicketsFinalizados.ToString(), bodyFont));
+                table.AddCell(new Phrase(c.TicketsCancelados.ToString(), bodyFont));
+            }
+
+            doc.Add(table);
+            doc.Close();
+
+            return File(ms.ToArray(), "application/pdf", "Reporte_Categorias.pdf");
+        }
+
 
     }
 }
