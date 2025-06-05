@@ -228,6 +228,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                 where t.ticketId == tarea.ticketId
                                 select e.nombre).FirstOrDefault();
             var ticket = _ticketsDbContext.ticket.Find(tarea.ticketId);
+            
 
             if (estadoTicket == asignado)
             {
@@ -236,8 +237,7 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                                 where e.nombre == "En proceso"
                                 select e.estadoId).FirstOrDefault();
                 //Aqui actualizo el estado del Ticket a "En proceso" solo si el estado actual es "Asignado"
-                ticket.estadoId = idEstado;
-                _ticketsDbContext.SaveChanges();
+                
 
 
                 /*
@@ -258,13 +258,16 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                     fechaNuevo = DateTime.Now
 
                 };
+                ticket.estadoId = idEstado;
+                _ticketsDbContext.SaveChanges();
                 _ticketsDbContext.historialEstados.Add(historialEstado2);
                 _ticketsDbContext.SaveChanges();
             }
 
-
+            var momentaneo = tarea.estadoId;
             if (tarea != null)
             {
+
                 tarea.estadoId = estadoId;
                 _ticketsDbContext.SaveChanges();
                 if (estadoNombre == Espera)
@@ -317,15 +320,13 @@ namespace Proyecto_DAW_Grupo_10.Controllers
 
 
                 
-
-                return RedirectToAction("Dashboard");
             }
             // Registrar el cambio de estado en el historial
             var historialEstado = new historialEstados
             {
                 ticketId = tarea.ticketId,
                 usuarioId = (int)HttpContext.Session.GetInt32("usuarioId"),
-                estadoAnteriorId = tarea.estadoId,
+                estadoAnteriorId = momentaneo,
                 estadoNuevoId = estadoId,
                 fechaNuevo = DateTime.Now,
                 tareaId = id
@@ -333,6 +334,119 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             };
             _ticketsDbContext.historialEstados.Add(historialEstado);
             _ticketsDbContext.SaveChanges();
+            if (estadoNombre == Finalizado)
+            {
+                var VerificarTareasTerminadas = (from t in _ticketsDbContext.tarea
+                                                 join e in _ticketsDbContext.estado on t.estadoId equals e.estadoId
+                                                 where t.ticketId == tarea.ticketId
+                                                 select new
+                                                 {
+                                                     Estado = e.nombre
+                                                 }).ToList();
+                bool todasFinalizadas = false;
+                int contadorNOFinalizadas = 0;
+                foreach (var tareaVerificar in VerificarTareasTerminadas)
+                {
+                    if (tareaVerificar.Estado != Finalizado && tareaVerificar.Estado != "Cancelado")
+                    {
+                        contadorNOFinalizadas += 1;
+                    }
+                }
+                if (contadorNOFinalizadas == 0)
+                {
+                    //Como todas las tareas estan finalizdas entonces cambiaremos el estado de Ticket a "En espera del Cliente" y guardamos en historial
+                    //Se obtiene el id de estado de "En espera del Cliente" 
+                    var idEstado1 = (from e in _ticketsDbContext.estado
+                                     where e.nombre == Espera
+                                     select e.estadoId).FirstOrDefault();
+                    //Se actualiza el estado del Ticket a "En espera del Cliente" solo si todas las tareas estan finalizadas
+                    //(no poner otro Return RedirectToAction por que sino corta el codigo)
+                    //Espacio para email
+                    /*
+                     * 
+                     * 
+                     * 
+                     *Espacio para logica email de Tecnico a admin
+                     * 
+                     * 
+                     * Tambien notificacion de cambio de estado del ticket ( se modifcara para que el usuario entienda que tiene que revisar y confirmar)
+                     * 
+                     */
+                    //Email de Técnico a Administrador
+                    int usuarioId = HttpContext.Session.GetInt32("usuarioId") ?? 0;
+                    var usuarioTecnico = _ticketsDbContext.usuario.Find(usuarioId);
+
+             
+                    var admins = (from u in _ticketsDbContext.usuario
+                                  join r in _ticketsDbContext.rol on u.rolId equals r.rolId
+                                  where r.nombre == "Administrador" && u.activo == true
+                                  select u).ToList();
+
+               
+                    string fecha = DateTime.Now.ToString("dd/MM/yyyy");
+                    string hora = DateTime.Now.ToString("HH:mm");
+
+                   
+                    string descripcionProblema = ticket.descripcion;
+                    string asuntoCorreo = $"Ticket #{ticket.ticketId} en espera del cliente";
+
+                   
+                    foreach (var admin in admins)
+                    {
+                        string cuerpoCorreo = $"Estimado/a Administrador/a {admin.nombre},\n\n" +
+                                              $"Le informamos que el técnico {usuarioTecnico.nombre} ha marcado el ticket #{ticket.ticketId} como: En espera del cliente.\n\n" +
+                                              $"Esto indica que ya se ha brindado una resolución y se espera que el cliente la revise.\n\n" +
+                                              $"Descripción del ticket:{descripcionProblema}\n" +
+                                              $"Fecha: {fecha} Hora: {hora}\n\n" +
+                                              $"Le invitamos a ingresar al sistema para dar seguimiento.\n\n" +
+                                              $"Saludos,\nEquipo de Ayudín";
+
+                        correo correoAdmin = new correo(_configuration);
+                        correoAdmin.enviar(
+                            destinatario: admin.correo,
+                            asunto: asuntoCorreo,
+                            cuerpo: cuerpoCorreo
+                        );
+                    }
+
+                    //Email al cliente sobre el cambio de estado y espera de su respuesta
+                    var cliente = _ticketsDbContext.usuario.Find(ticket.usuarioCreadorId);
+                    string asuntoCliente = $"¿Nos ayudas con tu ticket #{ticket.ticketId}?";
+                    string cuerpoCliente = $"Hola {cliente.nombre},\n\n" +
+                        $"Hemos finalizado las tareas relacionadas con tu ticket #{ticket.ticketId}. Un administrador se comunicará contigo por medio de una llamada para confirmar si la solución fue satisfactoria.\n\n" +
+                        $"Descripción del ticket: {ticket.descripcion}\n\n" +
+                        "Gracias por utilizar Ayudín.\n\n" +
+                        "Saludos,\nEquipo de Ayudín";
+
+                    correo enviarCorreoCliente = new correo(_configuration);
+                    enviarCorreoCliente.enviar(
+                        destinatario: cliente.correo,
+                        asunto: asuntoCliente,
+                        cuerpo: cuerpoCliente
+                    );
+
+
+
+
+                    // Registrar el cambio de estado en el historial
+                    var momentaneo2 = ticket.estadoId;
+                    ticket.estadoId = idEstado1;
+                    _ticketsDbContext.SaveChanges();
+                    var historialEstado1 = new historialEstados
+                    {
+                        ticketId = ticket.ticketId,
+                        usuarioId = (int)HttpContext.Session.GetInt32("usuarioId"),
+                        estadoAnteriorId = momentaneo2,
+                        estadoNuevoId = idEstado1,
+                        fechaNuevo = DateTime.Now
+                    };
+                    _ticketsDbContext.historialEstados.Add(historialEstado1);
+                    _ticketsDbContext.SaveChanges();
+
+
+                }
+
+            }
             return RedirectToAction("Dashboard");
         }
 
