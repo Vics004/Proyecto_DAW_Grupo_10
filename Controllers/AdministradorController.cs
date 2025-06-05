@@ -668,12 +668,22 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         [HttpPost]
         public IActionResult CrearTarea(int ticketId, int tecnicoId, string descripcion)
         {
+            var estadoAsignadoId = _ticketsDbContext.estado
+                .Where(e => e.nombre == "Asignado")
+                .Select(e => e.estadoId)
+                .FirstOrDefault();
+
+            var ticket = _ticketsDbContext.ticket.Find(ticketId);
+            if (ticket == null)
+                return NotFound();
+
+            var estadoAnteriorTicket = ticket.estadoId;
 
             var nuevaTarea = new tarea
             {
                 ticketId = ticketId,
                 usuarioAsignadoId = tecnicoId,
-                estadoId = 3, // Asignado
+                estadoId = estadoAsignadoId,
                 descripcion = descripcion,
                 fecha = DateTime.Now
             };
@@ -681,14 +691,45 @@ namespace Proyecto_DAW_Grupo_10.Controllers
             _ticketsDbContext.tarea.Add(nuevaTarea);
             _ticketsDbContext.SaveChanges();
 
-            var ticket = _ticketsDbContext.ticket.Find(ticketId);
-            if (ticket != null && ticket.estadoId == 1)
+            var usuarioId = HttpContext.Session.GetInt32("usuarioId") ?? 0;
+
+            // Registrar historial de la tarea
+            var historialTarea = new historialEstados
             {
-                ticket.estadoId = 3;
-                _ticketsDbContext.SaveChanges();
+                ticketId = ticketId,
+                tareaId = nuevaTarea.tareaId,
+                usuarioId = usuarioId,
+                estadoAnteriorId = estadoAnteriorTicket, // estado del ticket al momento de crear la tarea
+                estadoNuevoId = estadoAsignadoId,
+                fechaNuevo = DateTime.Now
+            };
+            _ticketsDbContext.historialEstados.Add(historialTarea);
+
+            // Solo actualizar y registrar historial del ticket si estaba en "Creado"
+            var estadoCreadoId = _ticketsDbContext.estado
+                .Where(e => e.nombre == "Creado")
+                .Select(e => e.estadoId)
+                .FirstOrDefault();
+
+            if (ticket.estadoId == estadoCreadoId)
+            {
+                ticket.estadoId = estadoAsignadoId;
+
+                var historialTicket = new historialEstados
+                {
+                    ticketId = ticketId,
+                    tareaId = null,
+                    usuarioId = usuarioId,
+                    estadoAnteriorId = estadoCreadoId,
+                    estadoNuevoId = estadoAsignadoId,
+                    fechaNuevo = DateTime.Now
+                };
+                _ticketsDbContext.historialEstados.Add(historialTicket);
             }
 
-            return RedirectToAction("GestionTickets");
+            _ticketsDbContext.SaveChanges();
+
+            return RedirectToAction("EditarTicket", new { id = ticketId });
         }
 
 
