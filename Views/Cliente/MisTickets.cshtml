@@ -53,7 +53,7 @@
 </div>
 
 <!-- Información de resultados -->
-<div style="margin-bottom: 1.5rem; padding: 1rem 1.5rem; background: var(--light-gray); border-radius: 0.75rem; border-left: 4px solid var(--primary-color);">
+<div style="margin-bottom: 1.5rem; padding: 1rem 1.5rem; background: var(--light-gray); border-radius: 0.75rem; border-left: 4px solid var(--primary-color); display: flex; justify-content: space-between; align-items: center;">
     @if (ViewBag.Tickets != null)
     {
         <span style="color: var(--text-secondary); font-weight: 500;">
@@ -64,9 +64,19 @@
             }
         </span>
     }
-    <div class="task-actions">
+
+    <div class="task-actions" style="display: flex; gap: 0.75rem;">
+        <a href="@Url.Action("GenerarPDFMisTickets", "Cliente", new {
+            estadoFiltro = ViewBag.EstadoSeleccionado,
+            prioridadFiltro = ViewBag.PrioridadSeleccionada
+        })" class="btn-view" style="background: var(--danger-color);">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 1rem; height: 1rem;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Exportar a PDF
+        </a>
         <a href="@Url.Action("CrearTicket")" class="btn-view">
-            <i class="fas fa-plus-circle"></i> Crear un nuevo ticket
+            <i class="fas fa-plus-circle"></i> Crear Ticket
         </a>
     </div>
 </div>
@@ -155,7 +165,6 @@
         }
     </div>
 </div>
-
 
 <script>
     // Script para aplicar filtros automáticamente al cambiar selección
