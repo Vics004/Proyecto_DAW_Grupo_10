@@ -124,6 +124,47 @@
                     </table>
                 </div>
             </div>
+            <!-- Tickets Finalizados -->
+            <div class="table-container mb-5">
+                <div class="tasks-section">
+                    <h3 class="section-title mb-3">Tickets Finalizados</h3>
+                    <table class="table modern-table">
+                        <thead>
+                            <tr>
+                                <th>ID Ticket</th>
+                                <th>Problema</th>
+                                <th>Categoría</th>
+                                <th>Fecha de Asignación</th>
+                                <th>Estado</th>
+                                <th>Prioridad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ticket in ViewBag.TicketsFinalizados as List<Proyecto_DAW_Grupo_10.Models.ticket>)
+                            {
+                                var primeraTarea = ticket.tarea?.OrderBy(t => t.fecha).FirstOrDefault();
+                                <tr>
+                                    <td class="id-column">@ticket.ticketId</td>
+                                    <td>@ticket.problema?.nombre</td>
+                                    <td>@ticket.problema?.categoria?.nombre</td>
+                                    <td>@primeraTarea?.fecha.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <span class="status-badge status-@ticket.estado?.nombre.ToLower().Replace(" ", "-")">
+                                            @ticket.estado?.nombre
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="priority-badge priority-@ticket.prioridad?.nombre.ToLower()">
+                                            @ticket.prioridad?.nombre
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </main>
     </div>
 </div>

@@ -461,24 +461,39 @@ namespace Proyecto_DAW_Grupo_10.Controllers
         // Gestión de Tickets
         public IActionResult GestionTickets()
         {
+
+            var ticketsFinalizados = _ticketsDbContext.ticket
+             .Where(t => t.estado.nombre == "Finalizado")
+             .Include(t => t.problema)
+             .ThenInclude(p => p.categoria)
+             .Include(t => t.estado)
+             .Include(t => t.prioridad)
+             .Include(t => t.tarea)
+             .ToList();
+
             var ticketsAsignados = _ticketsDbContext.ticket
-                .Where(t => _ticketsDbContext.tarea.Any(tar => tar.ticketId == t.ticketId))
-                .Include(t => t.problema)
-                .ThenInclude(p => p.categoria)
-                .Include(t => t.estado)
-                .Include(t => t.prioridad)
-                .Include(t => t.tarea)
-                .ToList();
+             .Where(t => _ticketsDbContext.tarea.Any(tar => tar.ticketId == t.ticketId) && t.estado.nombre != "Finalizado")
+             .Include(t => t.problema)
+             .ThenInclude(p => p.categoria)
+             .Include(t => t.estado)
+             .Include(t => t.prioridad)
+             .Include(t => t.tarea)
+             .ToList();
+
+
 
             var ticketsSinAsignar = _ticketsDbContext.ticket
-                .Where(t => !_ticketsDbContext.tarea.Any(tar => tar.ticketId == t.ticketId))
-                .Include(t => t.problema)
-                .ThenInclude(p => p.categoria)
-                .Include(t => t.prioridad)
-                .ToList();
+             .Where(t => !_ticketsDbContext.tarea.Any(tar => tar.ticketId == t.ticketId) && t.estado.nombre != "Finalizado")
+             .Include(t => t.problema)
+             .ThenInclude(p => p.categoria)
+             .Include(t => t.prioridad)
+             .Include(t => t.estado)
+             .ToList();
 
             ViewBag.TicketsAsignados = ticketsAsignados;
             ViewBag.TicketsSinAsignar = ticketsSinAsignar;
+            ViewBag.TicketsFinalizados = ticketsFinalizados;
+
 
             return View();
         }
