@@ -137,6 +137,7 @@
                                 <th>Fecha de Asignación</th>
                                 <th>Estado</th>
                                 <th>Prioridad</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -157,6 +158,11 @@
                                         <span class="priority-badge priority-@ticket.prioridad?.nombre.ToLower()">
                                             @ticket.prioridad?.nombre
                                         </span>
+                                    </td>
+                                    <td>
+                                        <a href="/Administrador/EditarTicket/@ticket.ticketId" class="btn-view d-flex align-items-center justify-content-center" style="width: 100px;">
+                                            Editar
+                                        </a>
                                     </td>
                                 </tr>
                             }
