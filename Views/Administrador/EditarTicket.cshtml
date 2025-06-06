@@ -296,6 +296,88 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Comentarios -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3 class="section-title">Comentarios</h3>
+                </div>
+                <div class="section-body">
+
+
+                    <!-- Comentarios y Cambios de Estados-->
+                    <div class="tasks-section completed-section">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                                Actividad del Ticket
+                            </h2>
+                        </div>
+
+                        <div class="tasks-grid">
+                            <div class="task-card" style="grid-column: 1 / -1; max-width: none;">
+                                <div class="task-content">
+
+
+                                    <!-- Timeline de comentarios y actividades -->
+                                    <div class="comments-timeline">
+                                        @if (ViewBag.Actividad != null && ViewBag.Actividad.Count > 0)
+                                        {
+                                            @foreach (var actividad in ViewBag.Actividad)
+                                            {
+                                                <div class="timeline-item @(actividad.UsuarioId == ViewBag.UsuarioId ? "timeline-item-own" : "timeline-item-other")">
+                                                    <div class="timeline-avatar">
+                                                        <div class="avatar">
+                                                            @actividad.Usuario.Substring(0, 1).ToUpper()
+                                                        </div>
+                                                    </div>
+                                                    <div class="timeline-content">
+                                                        <div class="comment-header">
+                                                            <span class="comment-author">@actividad.Usuario</span>
+                                                            <span class="comment-date">@actividad.Fecha.ToString("dd/MM/yyyy HH:mm")</span>
+                                                            <span class="activity-type @(actividad.Tipo == "Comentario" ? "comment-type" : "status-type")">
+                                                                @actividad.Tipo @(actividad.TareaId == null ? " De Ticket" : "")
+                                                            </span>
+                                                        </div>
+                                                        <div class="comment-body">
+                                                            <p>@actividad.Detalle</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="empty-state">
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                                </svg>
+                                                <p>No hay actividad aún</p>
+                                            </div>
+                                        }
+
+
+
+
+
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+
         </main>
     </div>
 </div>
@@ -809,5 +891,327 @@
             margin: 0;
             font-size: 1rem;
         }
+
+    /* Comments Section */
+    .comment-form-container {
+        display: none;
+        margin-bottom: 2rem;
+    }
+
+    .comment-form {
+        background: var(--light-gray);
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .comment-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .comment-textarea {
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        font-family: inherit;
+        font-size: 0.875rem;
+        resize: vertical;
+        min-height: 100px;
+    }
+
+        .comment-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
+        }
+
+    /* Timeline de comentarios */
+    .comments-timeline {
+        position: relative;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 1rem;
+    }
+
+    .timeline-item-own {
+        flex-direction: row-reverse;
+    }
+
+    .timeline-avatar {
+        flex-shrink: 0;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .timeline-item-own .avatar {
+        background: var(--success-color);
+    }
+
+    .timeline-content {
+        flex: 1;
+        max-width: 70%;
+    }
+
+    .timeline-item-own .timeline-content {
+        text-align: right;
+    }
+
+    .comment-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .timeline-item-own .comment-header {
+        justify-content: flex-end;
+    }
+
+    .comment-author {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+    }
+
+    .comment-date {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .comment-body {
+        background: white;
+        padding: 1rem 1.25rem;
+        border-radius: 1rem;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        position: relative;
+    }
+
+    .timeline-item-own .comment-body {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .comment-body::before {
+        content: '';
+        position: absolute;
+        top: 1rem;
+        left: -8px;
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        border-right: 8px solid white;
+    }
+
+    .timeline-item-own .comment-body::before {
+        left: auto;
+        right: -8px;
+        border-right: none;
+        border-left: 8px solid var(--primary-color);
+    }
+
+    .comment-body p {
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* Estado vacío */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 2rem;
+        text-align: center;
+        color: var(--text-secondary);
+    }
+
+        .empty-state svg {
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+    /* Action Buttons */
+    .action-buttons {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-color);
+    }
+    /* extras*/
+
+    .activity-timeline {
+        position: relative;
+        padding: 0 1rem;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+        display: flex;
+    }
+
+    .timeline-item-left {
+        justify-content: flex-start;
+        text-align: left;
+    }
+
+    .timeline-item-right {
+        justify-content: flex-end;
+        text-align: right;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        top: 0;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .timeline-item-left .timeline-marker {
+        left: -1rem;
+    }
+
+    .timeline-item-right .timeline-marker {
+        right: -1rem;
+    }
+
+    .marker-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+    }
+
+        .marker-icon svg {
+            width: 0.75rem;
+            height: 0.75rem;
+        }
+
+    .comment-marker {
+        background: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+    .status-marker {
+        background: var(--success-light);
+        color: var(--success-color);
+    }
+
+    .timeline-content {
+        max-width: 70%;
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+    }
+
+    .timeline-item-right .timeline-content {
+        background: var(--primary-light);
+        color: var(--text-primary);
+    }
+
+    .activity-header {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .timeline-item-right .activity-header {
+        justify-content: flex-end;
+    }
+
+    .activity-user {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.875rem;
+    }
+
+    .activity-date {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .activity-type {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .comment-type {
+        background: var(--primary-light);
+        color: var(--primary-color);
+    }
+
+    .status-type {
+        background: var(--success-light);
+        color: var(--success-color);
+    }
+
+    .timeline-item-right .activity-type {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .activity-body p {
+        margin: 0;
+        line-height: 1.5;
+        color: var(--text-primary);
+    }
+
+    /* Flechas de los globos de diálogo */
+    .timeline-content::after {
+        content: '';
+        position: absolute;
+        top: 1rem;
+        width: 0;
+        height: 0;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+    }
+
+    .timeline-item-left .timeline-content::after {
+        left: -8px;
+        border-right: 8px solid white;
+    }
+
+    .timeline-item-right .timeline-content::after {
+        right: -8px;
+        border-left: 8px solid var(--primary-light);
+    }
 
 </style>

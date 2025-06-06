@@ -482,9 +482,19 @@ namespace Proyecto_DAW_Grupo_10.Controllers
 
             return View();
         }
-
+        //crear una clase temporal para facilitar to xd
+        public class ActividadDTO
+        {
+            public int UsuarioId { get; set; }
+            public string Usuario { get; set; }
+            public DateTime Fecha { get; set; }
+            public string Tipo { get; set; } // "Comentario" o "Cambio de Estado"
+            public string Detalle { get; set; }
+            public int? TareaId { get; set; }
+        }
         public IActionResult EditarTicket(int id)
         {
+
             var ticket = _ticketsDbContext.ticket
                 .Include(t => t.problema).ThenInclude(p => p.categoria)
                 .Include(t => t.estado)
@@ -512,6 +522,46 @@ namespace Proyecto_DAW_Grupo_10.Controllers
                 })
                 .OrderBy(t => t.TicketsActivos)
                 .ToList();
+
+            var clienteId = HttpContext.Session.GetInt32("usuarioId");
+            ViewBag.UsuarioId = clienteId;
+            //Obtener los nombres de archivos adjuntos y su fecha de subida
+            var idticket = (from ta in _ticketsDbContext.tarea
+                            where ta.tareaId == id
+                            select ta.ticketId).FirstOrDefault();
+            ViewBag.Ticket = idticket;
+            //obtener comentarios y cambios de estado
+            var comentariosList = (from com in _ticketsDbContext.comentario
+                                   join u in _ticketsDbContext.usuario on com.usuarioId equals u.usuarioId
+                                   where com.ticketId == idticket
+                                   select new ActividadDTO
+                                   {
+                                       UsuarioId = u.usuarioId,
+                                       Usuario = u.nombre,
+                                       Fecha = com.fecha,
+                                       Tipo = "Comentario",
+                                       Detalle = com.texto,
+                                       TareaId = com.tareaId
+                                   }).ToList();
+
+            var historialEstados = (from he in _ticketsDbContext.historialEstados
+                                    join u in _ticketsDbContext.usuario on he.usuarioId equals u.usuarioId
+                                    join e in _ticketsDbContext.estado on he.estadoNuevoId equals e.estadoId
+                                    where he.ticketId == idticket
+                                    select new ActividadDTO
+                                    {
+                                        UsuarioId = u.usuarioId,
+                                        Usuario = u.nombre,
+                                        Fecha = he.fechaNuevo,
+                                        Tipo = "Cambio de Estado",
+                                        Detalle = "Estado cambiado a: " + e.nombre,
+                                        TareaId = he.tareaId
+                                    }).ToList();
+            var actividadCompleta = comentariosList
+            .Concat(historialEstados)
+            .OrderBy(a => a.Fecha)
+            .ToList();
+            ViewBag.Actividad = actividadCompleta;
 
             return View("EditarTicket", ticket);
         }
